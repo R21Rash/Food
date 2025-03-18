@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mobile_app_flutter/views/components/location_provider.dart';
+import 'package:mobile_app_flutter/views/payment/payment_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -282,7 +283,12 @@ class CartModal {
                         ),
                       ),
                       onPressed: () {
-                        // Add order logic here
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PaymentScreen(),
+                          ),
+                        );
                       },
                       child: const Center(
                         child: Text(
