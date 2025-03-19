@@ -42,3 +42,6 @@ flutter:
     - assets/images/sandwich.jpg
     - assets/images/resturent1.jpg
     - assets/images/resturent2.jpg
+    - assets/images/cash.png
+    - assets/images/visa.png
+    - assets/images/master.png
