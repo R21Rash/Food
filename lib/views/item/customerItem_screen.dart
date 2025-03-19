@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app_flutter/views/components/cart_button.dart';
+import 'package:mobile_app_flutter/views/components/cart_modal.dart';
 
 class CustomerItemScreen extends StatefulWidget {
   final String title;
@@ -69,36 +71,10 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
         centerTitle: true,
 
         actions: [
-          /// ✅ **Cart Icon with Drawer Trigger**
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.shopping_bag_outlined,
-                  color: Colors.black,
-                ),
-                onPressed:
-                    () =>
-                        _scaffoldKey.currentState
-                            ?.openEndDrawer(), // Open drawer
-              ),
-              if (cartItems.isNotEmpty)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      cartItems.length.toString(),
-                      style: TextStyle(fontSize: 12, color: Colors.white),
-                    ),
-                  ),
-                ),
-            ],
+          CartButton(
+            cartItemCount: cartItems.length,
+            onCartPressed:
+                () => CartModal.showCartModal(context, cartItems, setState),
           ),
         ],
       ),

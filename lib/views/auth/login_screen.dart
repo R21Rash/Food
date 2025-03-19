@@ -136,7 +136,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                       ),
 
-                      /// ✅ **Sign Up Link**
                       const SizedBox(height: 15),
                       Center(
                         child: Row(
@@ -159,7 +158,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                       ),
 
-                      /// ✅ **Divider & Social Login**
                       const SizedBox(height: 10),
                       Center(
                         child: Column(

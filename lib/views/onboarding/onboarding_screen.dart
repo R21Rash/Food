@@ -55,12 +55,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
 
-          /// ✅ **Bottom Section (Next & Skip Buttons)**
           Expanded(
             flex: 1,
             child: Column(
               children: [
-                /// ✅ **Page Indicator (Dots)**
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
@@ -70,9 +68,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 const SizedBox(height: 60),
 
-                /// ✅ **Next Button**
                 SizedBox(
-                  width: double.infinity, // Full width button
+                  width: double.infinity,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: ElevatedButton(
@@ -111,14 +108,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 10), // Space between buttons
-                /// ✅ **Skip Button (Placed below Next Button)**
+                const SizedBox(height: 10),
+
                 TextButton(
                   onPressed: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      '/login',
-                    ); // Skip to Login
+                    Navigator.pushReplacementNamed(context, '/login');
                   },
                   child: const Text(
                     "Skip",
