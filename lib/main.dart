@@ -8,6 +8,8 @@ import 'package:mobile_app_flutter/views/item/customerItem_screen.dart';
 import 'package:mobile_app_flutter/views/splash_screen.dart';
 import 'package:mobile_app_flutter/views/onboarding/onboarding_screen.dart';
 import 'package:mobile_app_flutter/views/auth/login_screen.dart';
+import 'package:mobile_app_flutter/views/home/restaurant_home_screen.dart';
+import 'package:mobile_app_flutter/views/home/delivery_home_screen.dart';
 
 void main() {
   runApp(
@@ -52,6 +54,8 @@ class AppRoutes {
   static const String signup = '/signup';
   static const String customerHome = '/customer_home';
   static const String customerItem = '/customer-item';
+  static const String restaurantHome = '/restaurant_home';
+  static const String deliveryHome = '/delivery_home';
 
   static Map<String, WidgetBuilder> get routes => {
     splash: (context) => SplashScreen(),
@@ -60,5 +64,7 @@ class AppRoutes {
     signup: (context) => SignupScreen(),
     customerHome: (context) => HomeCustomerScreen(),
     customerItem: (context) => CustomerItemScreen(title: '', image: ''),
+    restaurantHome: (context) => RestaurantHomeScreen(),
+    deliveryHome: (context) => DeliveryHomeScreen(),
   };
 }

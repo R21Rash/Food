@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:mobile_app_flutter/views/auth/signup_success.dart';
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -19,21 +20,20 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
+  final String backendUrl =
+      "http://192.168.8.163:5000/api/auth/signup"; // ✅ Update this to your PC's IP
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E2D),
       body: Stack(
         children: [
-          Container(
-            height: 280,
-            decoration: const BoxDecoration(color: Color(0xFF1E1E2D)),
-          ),
+          Container(height: 280, color: const Color(0xFF1E1E2D)),
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
               height: MediaQuery.of(context).size.height * 0.75,
-              width: double.infinity,
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -72,11 +72,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                 child: Text(role),
                               );
                             }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedRole = value;
-                          });
-                        },
+                        onChanged:
+                            (value) => setState(() => selectedRole = value),
                         hint: const Text("Select Role"),
                       ),
                       const SizedBox(height: 15),
@@ -121,37 +118,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          onPressed: () async {
-                            final name =
-                                selectedRole == "Restaurant"
-                                    ? restaurantNameController.text
-                                    : fullNameController.text;
-                            final response = await http.post(
-                              Uri.parse(
-                                "http://localhost:5000/api/auth/register",
-                              ),
-                              headers: {"Content-Type": "application/json"},
-                              body: jsonEncode({
-                                "name": name,
-                                "email": emailController.text,
-                                "password": passwordController.text,
-                                "role": selectedRole,
-                              }),
-                            );
-
-                            if (response.statusCode == 201) {
-                              Navigator.pushNamed(context, '/login');
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Signup Failed: \${response.body}",
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          },
+                          onPressed: registerUser,
                           child: const Text(
                             "SIGN UP",
                             style: TextStyle(fontSize: 16),
@@ -184,12 +151,12 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
             ),
           ),
-          Positioned(
+          const Positioned(
             top: 100,
             left: 0,
             right: 0,
             child: Column(
-              children: const [
+              children: [
                 Text(
                   "Sign Up",
                   style: TextStyle(
@@ -242,5 +209,47 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 15),
       ],
     );
+  }
+
+  Future<void> registerUser() async {
+    try {
+      final name =
+          selectedRole == "Restaurant"
+              ? restaurantNameController.text
+              : fullNameController.text;
+
+      final response = await http.post(
+        Uri.parse(backendUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "role": selectedRole,
+          "fullName": selectedRole != "Restaurant" ? name : null,
+          "restaurantName": selectedRole == "Restaurant" ? name : null,
+          "email": emailController.text,
+          "password": passwordController.text,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => SignupSuccessScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Signup Failed: ${response.body}"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Connection Failed: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

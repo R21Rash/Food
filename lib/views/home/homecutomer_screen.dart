@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app_flutter/views/item/customerItem_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class HomeCustomerScreen extends StatelessWidget {
-  /// ✅ **Mock Data for Categories**
+class HomeCustomerScreen extends StatefulWidget {
+  @override
+  _HomeCustomerScreenState createState() => _HomeCustomerScreenState();
+}
+
+class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
+  String greetingMessage = "Hey there!";
+
   final List<Map<String, String>> categories = [
-    {"title": "Pizza", "image": "assets/images/pizza.jpg"},
-    {"title": "Burger", "image": "assets/images/burger.jpg"},
-    {"title": "Sandwich", "image": "assets/images/sandwich.jpg"},
     {"title": "Pizza", "image": "assets/images/pizza.jpg"},
     {"title": "Burger", "image": "assets/images/burger.jpg"},
     {"title": "Sandwich", "image": "assets/images/sandwich.jpg"},
   ];
 
-  /// ✅ **Mock Data for Open Restaurants**
   final List<Map<String, dynamic>> restaurants = [
     {
       "name": "Rose Garden Restaurant",
-      "description": "Burger - Chicken - Riche - Wings",
+      "description": "Burger - Chicken - Rice - Wings",
       "image": "assets/images/resturent1.jpg",
       "rating": 4.7,
       "delivery": "Free",
@@ -30,20 +33,37 @@ class HomeCustomerScreen extends StatelessWidget {
       "delivery": "\$2",
       "time": "30 min",
     },
-    {
-      "name": "Rose Garden Restaurant",
-      "description": "Burger - Chicken - Riche - Wings",
-      "image": "assets/images/resturent1.jpg",
-      "rating": 4.7,
-      "delivery": "Free",
-      "time": "20 min",
-    },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    loadGreeting();
+  }
+
+  Future<void> loadGreeting() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('name') ?? "User";
+
+    final hour = DateTime.now().hour;
+    String greeting;
+    if (hour < 12) {
+      greeting = "Good Morning";
+    } else if (hour < 17) {
+      greeting = "Good Afternoon";
+    } else {
+      greeting = "Good Evening";
+    }
+
+    setState(() {
+      greetingMessage = "Hey $name, $greeting!";
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // ✅ White background
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -86,37 +106,14 @@ class HomeCustomerScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// ✅ **Delivery Section**
-              const Text(
-                "DELIVER TO",
-                style: TextStyle(
-                  fontSize: 12,
+              Text(
+                greetingMessage,
+                style: const TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange,
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Halal Lab office",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const Icon(Icons.keyboard_arrow_down, color: Colors.black),
-                ],
-              ),
-
               const SizedBox(height: 15),
-
-              /// ✅ **Greeting Message**
-              const Text(
-                "Hey Halal, Good Afternoon!",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 15),
-
-              /// ✅ **Search Bar**
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 decoration: BoxDecoration(
@@ -131,34 +128,25 @@ class HomeCustomerScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              /// ✅ **Categories Section**
               _sectionTitle("All Categories"),
               SizedBox(
-                height: 130, // Increased to make space for bigger images
+                height: 130,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: categories.length,
                   itemBuilder: (context, index) {
-                    return _categoryCard(
-                      categories[index],
-                      context,
-                    ); // ✅ Pass context
+                    return _categoryCard(categories[index], context);
                   },
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              /// ✅ **Open Restaurants Section**
               _sectionTitle("Open Restaurants"),
               Column(
                 children:
-                    restaurants.map((restaurant) {
-                      return _restaurantCard(restaurant);
-                    }).toList(),
+                    restaurants
+                        .map((restaurant) => _restaurantCard(restaurant))
+                        .toList(),
               ),
             ],
           ),
@@ -167,7 +155,6 @@ class HomeCustomerScreen extends StatelessWidget {
     );
   }
 
-  /// ✅ **Reusable Section Title**
   Widget _sectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -191,8 +178,6 @@ class HomeCustomerScreen extends StatelessWidget {
     );
   }
 
-  /// ✅ **Reusable Category Card**
-  /// ✅ **Updated Category Card - Navigate to CustomerItemScreen**
   Widget _categoryCard(Map<String, String> category, BuildContext context) {
     return GestureDetector(
       onTap: () {
@@ -212,7 +197,7 @@ class HomeCustomerScreen extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              width: 100, // Keep the card size fixed
+              width: 100,
               height: 100,
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -226,17 +211,8 @@ class HomeCustomerScreen extends StatelessWidget {
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  15,
-                ), // Clip image inside card
-                child: Image.asset(
-                  category["image"]!,
-                  width: 100, // Match container width
-                  height: 100, // Match container height
-                  fit:
-                      BoxFit
-                          .cover, // ✅ Cover entire container without whitespace
-                ),
+                borderRadius: BorderRadius.circular(15),
+                child: Image.asset(category["image"]!, fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 5),
@@ -250,7 +226,6 @@ class HomeCustomerScreen extends StatelessWidget {
     );
   }
 
-  /// ✅ **Reusable Restaurant Card**
   Widget _restaurantCard(Map<String, dynamic> restaurant) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
