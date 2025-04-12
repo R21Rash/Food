@@ -58,8 +58,9 @@ class PaymentSuccessScreen extends StatelessWidget {
                 ),
                 minimumSize: Size(double.infinity, 50),
               ),
+
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pushNamed(context, '/track_order');
               },
               child: Text(
                 "TRACK ORDER",

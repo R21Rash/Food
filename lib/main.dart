@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app_flutter/views/components/location_provider.dart';
+import 'package:mobile_app_flutter/views/trackorder/track_order_screen.dart';
 import 'package:provider/provider.dart';
 
 import 'package:mobile_app_flutter/views/auth/signup_screen.dart';
@@ -56,6 +57,7 @@ class AppRoutes {
   static const String customerItem = '/customer-item';
   static const String restaurantHome = '/restaurant_home';
   static const String deliveryHome = '/delivery_home';
+  static const String trackOrder = '/track_order';
 
   static Map<String, WidgetBuilder> get routes => {
     splash: (context) => SplashScreen(),
@@ -66,5 +68,6 @@ class AppRoutes {
     customerItem: (context) => CustomerItemScreen(title: '', image: ''),
     restaurantHome: (context) => RestaurantHomeScreen(),
     deliveryHome: (context) => DeliveryHomeScreen(),
+    trackOrder: (context) => TrackOrderScreen(),
   };
 }

@@ -67,9 +67,21 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
+        leading: PopupMenuButton<String>(
           icon: const Icon(Icons.menu, color: Colors.black),
-          onPressed: () {},
+          onSelected: (value) {
+            if (value == 'track_order') {
+              Navigator.pushNamed(context, '/track_order');
+            }
+          },
+          itemBuilder:
+              (context) => [
+                const PopupMenuItem(
+                  value: 'track_order',
+                  child: Text('Track Order'),
+                ),
+                // You can add more menu items here if needed
+              ],
         ),
         actions: [
           Stack(
@@ -100,6 +112,7 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
           ),
         ],
       ),
+
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SingleChildScrollView(
