@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -9,41 +11,42 @@ class _SignupScreenState extends State<SignupScreen> {
   String? selectedRole;
   final List<String> roles = ["Customer", "Restaurant", "Delivery"];
 
+  final TextEditingController fullNameController = TextEditingController();
+  final TextEditingController restaurantNameController =
+      TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E2D), // Dark background color
+      backgroundColor: const Color(0xFF1E1E2D),
       body: Stack(
         children: [
-          /// ✅ **Top Section (Dark Background)**
           Container(
-            height: 280, // Height of the dark background
-            decoration: const BoxDecoration(
-              color: Color(0xFF1E1E2D), // Dark theme background
-            ),
+            height: 280,
+            decoration: const BoxDecoration(color: Color(0xFF1E1E2D)),
           ),
-
-          /// ✅ **White Form Container on Top**
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              height:
-                  MediaQuery.of(context).size.height * 0.75, // Adjusted height
+              height: MediaQuery.of(context).size.height * 0.75,
               width: double.infinity,
               decoration: const BoxDecoration(
-                color: Colors.white, // White background
+                color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(20),
                   topRight: Radius.circular(20),
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(20), // ✅ Apply consistent padding
+                padding: const EdgeInsets.all(20),
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// ✅ **Role Selection Dropdown**
                       const Text(
                         "ROLE",
                         style: TextStyle(
@@ -77,28 +80,36 @@ class _SignupScreenState extends State<SignupScreen> {
                         hint: const Text("Select Role"),
                       ),
                       const SizedBox(height: 15),
-
-                      /// ✅ **Show Dynamic Fields Based on Role**
-                      if (selectedRole == "Restaurant") ...[
+                      if (selectedRole == "Restaurant")
                         buildTextField(
                           "Restaurant Name",
                           "Enter restaurant name",
+                          controller: restaurantNameController,
+                        )
+                      else
+                        buildTextField(
+                          "Full Name",
+                          "Enter full name",
+                          controller: fullNameController,
                         ),
-                      ] else ...[
-                        buildTextField("Full Name", "Enter full name"),
-                      ],
-
-                      buildTextField("Email", "example@gmail.com"),
-                      buildTextField("Password", "********", isPassword: true),
+                      buildTextField(
+                        "Email",
+                        "example@gmail.com",
+                        controller: emailController,
+                      ),
+                      buildTextField(
+                        "Password",
+                        "********",
+                        isPassword: true,
+                        controller: passwordController,
+                      ),
                       buildTextField(
                         "Confirm Password",
                         "********",
                         isPassword: true,
+                        controller: confirmPasswordController,
                       ),
-
                       const SizedBox(height: 20),
-
-                      /// ✅ **Sign Up Button**
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -110,20 +121,43 @@ class _SignupScreenState extends State<SignupScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/login');
+                          onPressed: () async {
+                            final name =
+                                selectedRole == "Restaurant"
+                                    ? restaurantNameController.text
+                                    : fullNameController.text;
+                            final response = await http.post(
+                              Uri.parse(
+                                "http://localhost:5000/api/auth/register",
+                              ),
+                              headers: {"Content-Type": "application/json"},
+                              body: jsonEncode({
+                                "name": name,
+                                "email": emailController.text,
+                                "password": passwordController.text,
+                                "role": selectedRole,
+                              }),
+                            );
+
+                            if (response.statusCode == 201) {
+                              Navigator.pushNamed(context, '/login');
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Signup Failed: \${response.body}",
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           },
                           child: const Text(
                             "SIGN UP",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.normal,
-                            ),
+                            style: TextStyle(fontSize: 16),
                           ),
                         ),
                       ),
-
-                      /// ✅ **Already have an account? Log In**
                       const SizedBox(height: 15),
                       Center(
                         child: Row(
@@ -131,9 +165,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           children: [
                             const Text("Already have an account? "),
                             TextButton(
-                              onPressed: () {
-                                Navigator.pushNamed(context, '/login');
-                              },
+                              onPressed:
+                                  () => Navigator.pushNamed(context, '/login'),
                               child: const Text(
                                 "LOG IN",
                                 style: TextStyle(
@@ -151,8 +184,6 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
             ),
           ),
-
-          /// ✅ **Title Above White Container**
           Positioned(
             top: 100,
             left: 0,
@@ -180,8 +211,12 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  /// ✅ **Reusable Text Field**
-  Widget buildTextField(String label, String hint, {bool isPassword = false}) {
+  Widget buildTextField(
+    String label,
+    String hint, {
+    bool isPassword = false,
+    TextEditingController? controller,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -192,6 +227,7 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 5),
         TextField(
           obscureText: isPassword,
+          controller: controller,
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
