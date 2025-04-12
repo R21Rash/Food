@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:mobile_app_flutter/views/components/location_provider.dart';
-import 'package:mobile_app_flutter/views/payment/payment_screen.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
+import 'package:mobile_app_flutter/views/payment/payment_succ.dart';
+import 'package:payhere_mobilesdk_flutter/payhere_mobilesdk_flutter.dart';
 import 'package:provider/provider.dart';
 
 class CartModal {
@@ -39,7 +36,6 @@ class CartModal {
               ),
               child: Column(
                 children: [
-                  ///  **Cart Header**
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -83,7 +79,6 @@ class CartModal {
                                   ),
                                   child: Row(
                                     children: [
-                                      ///  **Product Image**
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(10),
                                         child: Image.asset(
@@ -94,8 +89,6 @@ class CartModal {
                                         ),
                                       ),
                                       const SizedBox(width: 15),
-
-                                      ///  **Product Details**
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
@@ -109,7 +102,6 @@ class CartModal {
                                                 fontSize: 16,
                                               ),
                                             ),
-                                            const SizedBox(height: 5),
                                             Text(
                                               "\$${item["price"]}",
                                               style: const TextStyle(
@@ -118,19 +110,9 @@ class CartModal {
                                                 fontSize: 14,
                                               ),
                                             ),
-                                            const SizedBox(height: 5),
-                                            const Text(
-                                              '14"',
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 12,
-                                              ),
-                                            ),
                                           ],
                                         ),
                                       ),
-
-                                      ///  **Quantity Controls**
                                       Row(
                                         children: [
                                           IconButton(
@@ -152,8 +134,6 @@ class CartModal {
                                             "${item["quantity"]}",
                                             style: const TextStyle(
                                               color: Colors.white,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                           IconButton(
@@ -169,19 +149,6 @@ class CartModal {
                                           ),
                                         ],
                                       ),
-
-                                      ///  **Remove Button**
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.close,
-                                          color: Colors.red,
-                                        ),
-                                        onPressed: () {
-                                          setStateCallback(() {
-                                            cartItems.removeAt(index);
-                                          });
-                                        },
-                                      ),
                                     ],
                                   ),
                                 );
@@ -189,34 +156,25 @@ class CartModal {
                             ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           "TOTAL:",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         Text(
-                          "\$${_calculateTotalPrice(cartItems)}",
+                          "LKR ${_calculateTotalPrice(cartItems).toStringAsFixed(2)}",
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  ///  **Delivery Address with Edit Button**
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -230,23 +188,13 @@ class CartModal {
                           children: [
                             const Text(
                               "DELIVERY ADDRESS",
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(color: Colors.white70),
                             ),
                             GestureDetector(
-                              onTap: () {
-                                _openLocationPicker(context);
-                              },
+                              onTap: () => _openLocationPicker(context),
                               child: const Text(
                                 "EDIT",
-                                style: TextStyle(
-                                  color: Colors.orange,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: TextStyle(color: Colors.orange),
                               ),
                             ),
                           ],
@@ -266,8 +214,6 @@ class CartModal {
                       ],
                     ),
                   ),
-
-                  ///  **Place Order Button**
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -283,19 +229,52 @@ class CartModal {
                         ),
                       ),
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PaymentScreen(),
-                          ),
+                        final payment = {
+                          "sandbox": true,
+                          "merchant_id": "1229906",
+                          "notify_url": "https://sandbox.payhere.lk/notify",
+                          "order_id": "TESTORDER001",
+                          "items": "Test Item",
+                          "amount": "1000.00",
+                          "currency": "LKR",
+                          "first_name": "Test",
+                          "last_name": "User",
+                          "email": "test@user.com",
+                          "phone": "0771234567",
+                          "address": "Test Address",
+                          "city": "Colombo",
+                          "country": "Sri Lanka",
+                        };
+                        PayHere.startPayment(
+                          payment,
+                          (paymentId) {
+                            print("✅ Payment Success. ID: $paymentId");
+                            Navigator.pop(context); // close modal
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PaymentSuccessScreen(),
+                              ),
+                            );
+                          },
+                          (error) {
+                            print("❌ Payment Failed: $error");
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Payment Failed: $error"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          },
+                          () => print("ℹ️ Payment Dismissed"),
                         );
                       },
                       child: const Center(
                         child: Text(
                           "PLACE ORDER",
                           style: TextStyle(
-                            fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
                       ),
@@ -310,136 +289,76 @@ class CartModal {
     );
   }
 
-  /// **Open OSM Map Picker for Location Selection**
-  static void _openLocationPicker(BuildContext context) async {
-    final locationProvider = Provider.of<LocationProvider>(
-      context,
-      listen: false,
-    );
-
-    // Start with current stored location
-    LatLng selectedLocation = locationProvider.currentLocation;
-
-    try {
-      Position? position = await Geolocator.getLastKnownPosition();
-
-      if (position == null) {
-        position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.best,
-        );
-      }
-
-      selectedLocation = LatLng(position.latitude, position.longitude);
-    } catch (e) {
-      debugPrint("Could not fetch current location: $e");
-    }
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.85,
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Select Your Location",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Expanded(
-                    child: FlutterMap(
-                      mapController: MapController(),
-                      options: MapOptions(
-                        initialCenter: selectedLocation,
-                        initialZoom: 14.0,
-                        onTap: (tapPosition, LatLng position) async {
-                          String address = await locationProvider
-                              .getAddressFromLatLng(
-                                position.latitude,
-                                position.longitude,
-                              );
-
-                          setState(() {
-                            selectedLocation = position;
-                          });
-
-                          // Store the updated location globally
-                          locationProvider.updateLocation(position, address);
-                        },
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate:
-                              "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                          subdomains: ['a', 'b', 'c'],
-                        ),
-                        MarkerLayer(
-                          markers: [
-                            Marker(
-                              point: selectedLocation,
-                              width: 80.0,
-                              height: 80.0,
-                              child: const Icon(
-                                Icons.location_pin,
-                                size: 40.0,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  /// **Confirm Location Button**
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () {
-                        // Close the modal
-                        Navigator.pop(context);
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        child: Text(
-                          "Confirm Location",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  ///  **Calculate Total Price**
   static double _calculateTotalPrice(List<Map<String, dynamic>> cartItems) {
     double total = 0;
     for (var item in cartItems) {
       total += double.parse(item["price"]) * item["quantity"];
     }
     return total;
+  }
+
+  static void _openLocationPicker(BuildContext context) async {
+    final locationProvider = Provider.of<LocationProvider>(
+      context,
+      listen: false,
+    );
+    LatLng selectedLocation = locationProvider.currentLocation;
+
+    try {
+      Position? position = await Geolocator.getLastKnownPosition();
+      if (position == null) {
+        position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.best,
+        );
+      }
+      selectedLocation = LatLng(position.latitude, position.longitude);
+    } catch (e) {
+      debugPrint("Location fetch failed: $e");
+    }
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SizedBox(
+          height: MediaQuery.of(context).size.height * 0.85,
+          child: FlutterMap(
+            mapController: MapController(),
+            options: MapOptions(
+              initialCenter: selectedLocation,
+              initialZoom: 14.0,
+              onTap: (tapPosition, position) async {
+                String address = await locationProvider.getAddressFromLatLng(
+                  position.latitude,
+                  position.longitude,
+                );
+                locationProvider.updateLocation(position, address);
+              },
+            ),
+            children: [
+              TileLayer(
+                urlTemplate:
+                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                subdomains: ['a', 'b', 'c'],
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: selectedLocation,
+                    width: 80.0,
+                    height: 80.0,
+                    child: const Icon(
+                      Icons.location_pin,
+                      size: 40.0,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
