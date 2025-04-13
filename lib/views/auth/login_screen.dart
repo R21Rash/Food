@@ -39,10 +39,18 @@ class _LoginScreenState extends State<LoginScreen> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString("role", role);
         await prefs.setString("email", data["user"]["email"]);
+
+        // ✅ Store both name and restaurantName separately
         await prefs.setString(
           "name",
           data["user"]["fullName"] ?? data["user"]["restaurantName"] ?? "User",
         );
+        await prefs.setString(
+          "restaurantName",
+          data["user"]["restaurantName"] ?? "Restaurant",
+        );
+
+        print("✅ Stored restaurantName: ${data["user"]["restaurantName"]}");
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

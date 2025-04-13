@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app_flutter/views/add_list/restaurant_add_screen.dart';
+import 'package:mobile_app_flutter/views/add_list/restaurant_list_screen.dart';
 import 'package:mobile_app_flutter/views/components/location_provider.dart';
 import 'package:mobile_app_flutter/views/trackorder/track_order_screen.dart';
 import 'package:provider/provider.dart';
@@ -59,6 +61,9 @@ class AppRoutes {
   static const String deliveryHome = '/delivery_home';
   static const String trackOrder = '/track_order';
 
+  static const String restaurantAdd = '/restaurant_add_screen';
+  static const String restaurantList = '/restaurant_list_screen';
+
   static Map<String, WidgetBuilder> get routes => {
     splash: (context) => SplashScreen(),
     onboarding: (context) => OnboardingScreen(),
@@ -69,5 +74,7 @@ class AppRoutes {
     restaurantHome: (context) => RestaurantHomeScreen(),
     deliveryHome: (context) => DeliveryHomeScreen(),
     trackOrder: (context) => TrackOrderScreen(),
+    restaurantAdd: (context) => RestaurantAddScreen(), // Add this line
+    restaurantList: (context) => RestaurantListScreen(), // Add this line
   };
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app_flutter/views/components/cart_button.dart';
+import 'package:mobile_app_flutter/views/components/cart_modal.dart';
 import 'package:mobile_app_flutter/views/item/customerItem_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,7 +11,7 @@ class HomeCustomerScreen extends StatefulWidget {
 
 class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
   String greetingMessage = "Hey there!";
-
+  List<Map<String, dynamic>> cartItems = [];
   final List<Map<String, String>> categories = [
     {"title": "Pizza", "image": "assets/images/pizza.jpg"},
     {"title": "Burger", "image": "assets/images/burger.jpg"},
@@ -84,31 +86,10 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
               ],
         ),
         actions: [
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.shopping_bag_outlined,
-                  color: Colors.black,
-                ),
-                onPressed: () {},
-              ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Text(
-                    "2",
-                    style: TextStyle(fontSize: 12, color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
+          CartButton(
+            cartItemCount: cartItems.length,
+            onCartPressed:
+                () => CartModal.showCartModal(context, cartItems, setState),
           ),
         ],
       ),

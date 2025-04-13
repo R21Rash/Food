@@ -221,54 +221,62 @@ class CartModal {
                     ),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
+                        backgroundColor:
+                            cartItems.isEmpty
+                                ? Colors.orange[200]
+                                : Colors.orange,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      onPressed: () {
-                        final payment = {
-                          "sandbox": true,
-                          "merchant_id": "1229906",
-                          "notify_url": "https://sandbox.payhere.lk/notify",
-                          "order_id": "TESTORDER001",
-                          "items": "Test Item",
-                          "amount": "1000.00",
-                          "currency": "LKR",
-                          "first_name": "Test",
-                          "last_name": "User",
-                          "email": "test@user.com",
-                          "phone": "0771234567",
-                          "address": "Test Address",
-                          "city": "Colombo",
-                          "country": "Sri Lanka",
-                        };
-                        PayHere.startPayment(
-                          payment,
-                          (paymentId) {
-                            print("✅ Payment Success. ID: $paymentId");
-                            Navigator.pop(context); // close modal
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PaymentSuccessScreen(),
-                              ),
-                            );
-                          },
-                          (error) {
-                            print("❌ Payment Failed: $error");
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Payment Failed: $error"),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          },
-                          () => print("ℹ️ Payment Dismissed"),
-                        );
-                      },
+                      onPressed:
+                          cartItems.isEmpty
+                              ? null // Disables the button
+                              : () {
+                                final payment = {
+                                  "sandbox": true,
+                                  "merchant_id": "1229906",
+                                  "notify_url":
+                                      "https://sandbox.payhere.lk/notify",
+                                  "order_id": "TESTORDER001",
+                                  "items": "Test Item",
+                                  "amount": "1000.00",
+                                  "currency": "LKR",
+                                  "first_name": "Test",
+                                  "last_name": "User",
+                                  "email": "test@user.com",
+                                  "phone": "0771234567",
+                                  "address": "Test Address",
+                                  "city": "Colombo",
+                                  "country": "Sri Lanka",
+                                };
+                                PayHere.startPayment(
+                                  payment,
+                                  (paymentId) {
+                                    print("✅ Payment Success. ID: $paymentId");
+                                    Navigator.pop(context); // close modal
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PaymentSuccessScreen(),
+                                      ),
+                                    );
+                                  },
+                                  (error) {
+                                    print("❌ Payment Failed: $error");
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text("Payment Failed: $error"),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  },
+                                  () => print("ℹ️ Payment Dismissed"),
+                                );
+                              },
+
                       child: const Center(
                         child: Text(
                           "PLACE ORDER",
