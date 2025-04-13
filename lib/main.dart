@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import 'package:mobile_app_flutter/views/auth/signup_screen.dart';
 import 'package:mobile_app_flutter/views/home/homecutomer_screen.dart';
-import 'package:mobile_app_flutter/views/item/customerItem_screen.dart';
 import 'package:mobile_app_flutter/views/splash_screen.dart';
 import 'package:mobile_app_flutter/views/onboarding/onboarding_screen.dart';
 import 'package:mobile_app_flutter/views/auth/login_screen.dart';
@@ -56,7 +55,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String customerHome = '/customer_home';
-  static const String customerItem = '/customer-item';
+  // Removed customerItem route as it needs dynamic product data
   static const String restaurantHome = '/restaurant_home';
   static const String deliveryHome = '/delivery_home';
   static const String trackOrder = '/track_order';
@@ -70,11 +69,10 @@ class AppRoutes {
     login: (context) => LoginScreen(),
     signup: (context) => SignupScreen(),
     customerHome: (context) => HomeCustomerScreen(),
-    customerItem: (context) => CustomerItemScreen(title: '', image: ''),
     restaurantHome: (context) => RestaurantHomeScreen(),
     deliveryHome: (context) => DeliveryHomeScreen(),
     trackOrder: (context) => TrackOrderScreen(),
-    restaurantAdd: (context) => RestaurantAddScreen(), // Add this line
-    restaurantList: (context) => RestaurantListScreen(), // Add this line
+    restaurantAdd: (context) => RestaurantAddScreen(),
+    restaurantList: (context) => RestaurantListScreen(),
   };
 }
