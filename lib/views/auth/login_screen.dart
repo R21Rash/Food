@@ -39,7 +39,8 @@ class _LoginScreenState extends State<LoginScreen> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString("role", role);
         await prefs.setString("email", data["user"]["email"]);
-
+        await prefs.setString("user_id", data["user"]["_id"]);
+        await prefs.setString("fullName", data["user"]["fullName"] ?? "User");
         // ✅ Store both name and restaurantName separately
         await prefs.setString(
           "name",

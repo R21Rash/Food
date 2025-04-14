@@ -283,7 +283,10 @@ class CartModal {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => PaymentSuccessScreen(),
+                                        builder:
+                                            (_) => PaymentSuccessScreen(
+                                              cartItems: cartItems,
+                                            ),
                                       ),
                                     );
                                   },

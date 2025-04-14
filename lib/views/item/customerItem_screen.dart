@@ -30,6 +30,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
         "image": widget.product['images'][0],
         "price": widget.product['price'].toString(),
         "quantity": 1,
+        "restaurantName": widget.product['restaurantName'],
       });
     });
 

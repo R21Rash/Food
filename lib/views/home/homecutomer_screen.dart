@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/views/components/bottom_nav_bar_for_customer.dart';
 import 'package:mobile_app_flutter/views/components/cart_button.dart';
 import 'package:mobile_app_flutter/views/components/cart_modal.dart';
 import 'package:mobile_app_flutter/views/item/customerItem_screen.dart';
@@ -155,6 +156,17 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavBarForCustomer(
+        currentIndex: 0, // Home is index 0
+        onTap: (index) {
+          if (index == 0) return;
+          if (index == 1) {
+            Navigator.pushReplacementNamed(context, '/track_order');
+          } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/customer_profile');
+          }
+        },
       ),
     );
   }
