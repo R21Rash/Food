@@ -22,14 +22,15 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
   String courierName = "Your Courier";
   Timer? _pollingTimer;
   Timer? _countdownTimer;
-  Duration _eta = const Duration(minutes: 20); // 🕒 ETA Timer
+  Duration _eta = const Duration(minutes: 20);
   Map<String, dynamic>? latestOrder;
+  bool noOrders = false;
 
   @override
   void initState() {
     super.initState();
+    _startCountdown();
     _startPolling();
-    _startCountdown(); // 🕒 Start ETA countdown
   }
 
   @override
@@ -42,9 +43,11 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
   void _startCountdown() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_eta.inSeconds > 0) {
-        setState(() {
-          _eta = _eta - const Duration(seconds: 1);
-        });
+        if (mounted) {
+          setState(() {
+            _eta = _eta - const Duration(seconds: 1);
+          });
+        }
       } else {
         timer.cancel();
       }
@@ -53,8 +56,12 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
 
   void _startPolling() {
     fetchLatestOrderStatus();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      fetchLatestOrderStatus();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      if (latestOrder != null && latestOrder!['orderStatus'] == "Delivered") {
+        timer.cancel(); // Stop polling if already delivered
+      } else {
+        await fetchLatestOrderStatus();
+      }
     });
   }
 
@@ -62,32 +69,37 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('user_id') ?? '';
     final encodedUserId = Uri.encodeComponent(userId);
-
     final url = 'http://192.168.8.163:5000/api/orders/by-user/$encodedUserId';
 
     try {
       final response = await http.get(Uri.parse(url));
-
       if (response.statusCode == 200) {
         final orders = jsonDecode(response.body);
-
         if (orders.isNotEmpty) {
           final latest = orders[0];
           final status = latest['orderStatus'] ?? "Order Received";
-
-          setState(() {
-            latestOrder = latest;
-            currentStep = _statusToStepIndex(status);
-            courierName = "Assigned Courier";
-          });
-
-          if (status == "Delivered") {
-            _pollingTimer?.cancel();
+          if (mounted) {
+            setState(() {
+              noOrders = false;
+              latestOrder = latest;
+              currentStep = _statusToStepIndex(status);
+              courierName = "Assigned Courier";
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              noOrders = true;
+              latestOrder = null;
+            });
           }
         }
+      } else {
+        if (mounted) setState(() => noOrders = true);
       }
     } catch (e) {
       print("❌ Error fetching orders: $e");
+      if (mounted) setState(() => noOrders = true);
     }
   }
 
@@ -112,6 +124,29 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     return "$minutes:$seconds";
   }
 
+  Future<void> _markOrderAsCompleted() async {
+    final orderId = latestOrder?['_id'];
+    if (orderId != null) {
+      final url = Uri.parse(
+        "http://192.168.8.163:5000/api/orders/mark-complete/$orderId",
+      );
+      final response = await http.put(url);
+
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            latestOrder = null;
+            currentStep = 0;
+            noOrders = true;
+          });
+          _startPolling(); // Restart polling for next orders
+        }
+      } else {
+        print("❌ Failed to mark order as completed");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,93 +154,120 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text("Track Order"),
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
         centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            Text(
-              _eta.inSeconds > 0 ? _formatDuration(_eta) : "Soon",
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "ESTIMATED DELIVERY TIME",
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 20),
-
-            if (latestOrder != null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Your Order",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  ...List.generate(latestOrder!['items'].length, (index) {
-                    final item = latestOrder!['items'][index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.fastfood,
-                            size: 20,
-                            color: Colors.orange,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              "${item['title']} (x${item['quantity']}) - ${item['size'] ?? 'Regular'}",
-                              style: const TextStyle(fontSize: 15),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Total: Rs. ${latestOrder!['totalAmount']}",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.green,
+        child:
+            noOrders
+                ? const Center(
+                  child: Text(
+                    "❌ You have no orders to track.",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 30),
-                ],
-              ),
-
-            ...List.generate(
-              steps.length,
-              (index) => _buildStep(index, steps[index], index == currentStep),
-            ),
-
-            const Spacer(),
-            _buildCourierInfo(),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/customer_home');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                )
+                : Column(
+                  children: [
+                    Text(
+                      _eta.inSeconds > 0 ? _formatDuration(_eta) : "Soon",
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "ESTIMATED DELIVERY TIME",
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 20),
+                    if (latestOrder != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Your Order",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ...List.generate(latestOrder!['items'].length, (
+                            index,
+                          ) {
+                            final item = latestOrder!['items'][index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.fastfood,
+                                    size: 20,
+                                    color: Colors.orange,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      "${item['title']} (x${item['quantity']}) - ${item['size'] ?? 'Regular'}",
+                                      style: const TextStyle(fontSize: 15),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Total: Rs. ${latestOrder!['totalAmount']}",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.green,
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                        ],
+                      ),
+                    ...List.generate(
+                      steps.length,
+                      (index) =>
+                          _buildStep(index, steps[index], index == currentStep),
+                    ),
+                    const Spacer(),
+                    _buildCourierInfo(),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed:
+                          currentStep == 3
+                              ? _markOrderAsCompleted
+                              : () => Navigator.pushReplacementNamed(
+                                context,
+                                '/customer_home',
+                              ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        minimumSize: const Size(double.infinity, 48),
+                      ),
+                      child: Text(
+                        currentStep == 3 ? "Order Received" : "Return Home",
+                      ),
+                    ),
+                  ],
                 ),
-                minimumSize: const Size(double.infinity, 48),
-              ),
-              child: const Text("Return Home"),
-            ),
-          ],
-        ),
       ),
       bottomNavigationBar: BottomNavBarForCustomer(
         currentIndex: 1,

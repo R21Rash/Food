@@ -22,12 +22,19 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
   void initState() {
     super.initState();
     loadGreeting();
+    fetchOrderStats();
     fetchPopularItems();
+    fetchRevenueChartData();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _promptAndFetchLocation(context);
+      Provider.of<LocationProvider>(
+        context,
+        listen: false,
+      ).fetchCurrentLocation();
     });
   }
 
+  String? restaurantInitial = "";
   Future<void> loadGreeting() async {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('restaurantName') ?? "Restaurant";
@@ -44,7 +51,97 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
 
     setState(() {
       greetingMessage = "Hey, $name, $greeting!";
+      restaurantInitial = name.isNotEmpty ? name[0].toUpperCase() : "R";
     });
+  }
+
+  int runningOrders = 0;
+  int orderRequests = 0;
+  double totalIncome = 0.0;
+
+  Future<void> fetchOrderStats() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('restaurantName') ?? '';
+    final encodedName = Uri.encodeComponent(name);
+    final url =
+        "http://192.168.8.163:5000/api/orders/by-restaurant/$encodedName";
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+
+        int running = 0;
+        int requests = 0;
+        double income = 0.0;
+
+        for (var order in data) {
+          final status = order['orderStatus'];
+          final amountStr = order['totalAmount'] ?? "0";
+          final amount = double.tryParse(amountStr) ?? 0.0;
+
+          if (status == "Preparing" || status == "Picked for Delivery") {
+            running++;
+          } else if (status == "Order Received") {
+            requests++;
+          }
+
+          income += amount;
+        }
+        print("💰 Total Income Fetched: $income");
+        setState(() {
+          runningOrders = running;
+          orderRequests = requests;
+          totalIncome = income;
+        });
+      }
+    } catch (e) {
+      print("⚠️ Error fetching order stats: $e");
+    }
+  }
+
+  List<FlSpot> revenueSpots = [];
+  Map<String, double> revenueByDay = {};
+
+  Future<void> fetchRevenueChartData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('restaurantName') ?? '';
+    final encodedName = Uri.encodeComponent(name);
+    final url =
+        "http://192.168.8.163:5000/api/orders/by-restaurant/$encodedName";
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        Map<String, double> tempMap = {};
+
+        for (var order in data) {
+          final amountStr = order["totalAmount"] ?? "0";
+          final amount = double.tryParse(amountStr) ?? 0.0;
+          final dateStr = order["createdAt"]; // ISO String
+          final date = DateTime.tryParse(dateStr);
+
+          if (date != null) {
+            final day = "${date.year}-${date.month}-${date.day}";
+            tempMap[day] = (tempMap[day] ?? 0) + amount;
+          }
+        }
+
+        final sortedKeys = tempMap.keys.toList()..sort();
+        List<FlSpot> spots = [];
+        for (int i = 0; i < sortedKeys.length; i++) {
+          spots.add(FlSpot(i.toDouble(), tempMap[sortedKeys[i]]!));
+        }
+
+        setState(() {
+          revenueSpots = spots;
+          revenueByDay = tempMap;
+        });
+      }
+    } catch (e) {
+      print("❌ Error loading revenue chart: $e");
+    }
   }
 
   Future<void> fetchPopularItems() async {
@@ -101,6 +198,8 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+
         backgroundColor: Colors.grey[100],
         elevation: 0,
         title: Row(
@@ -126,10 +225,21 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 ],
               ),
             ),
-            const CircleAvatar(backgroundColor: Colors.grey, radius: 18),
+            CircleAvatar(
+              backgroundColor: Colors.orange,
+              radius: 18,
+              child: Text(
+                restaurantInitial ?? "R",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ],
         ),
       ),
+
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SingleChildScrollView(
@@ -139,9 +249,9 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  _infoCard("20", "RUNNING ORDERS"),
+                  _infoCard(runningOrders.toString(), "RUNNING ORDERS"),
                   const SizedBox(width: 10),
-                  _infoCard("05", "ORDER REQUEST"),
+                  _infoCard(orderRequests.toString(), "ORDER REQUESTS"),
                 ],
               ),
               const SizedBox(height: 20),
@@ -164,7 +274,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
       child: Container(
         height: 80,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.orange[300],
           borderRadius: BorderRadius.circular(15),
         ),
         child: Center(
@@ -180,7 +290,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
               ),
               Text(
                 label,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: const TextStyle(fontSize: 12, color: Colors.white),
               ),
             ],
           ),
@@ -197,6 +307,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -226,62 +337,75 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
               const Text("See Details", style: TextStyle(color: Colors.orange)),
             ],
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 150,
-            child: LineChart(
-              LineChartData(
-                borderData: FlBorderData(show: false),
-                gridData: FlGridData(show: true),
-                titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget:
-                          (value, _) => Text(
-                            "${value.toInt() + 10}AM",
-                            style: TextStyle(fontSize: 10),
-                          ),
-                      interval: 1,
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget:
-                          (value, _) => Text("Rs ${value.toInt()}"),
-                      interval: 100,
-                    ),
-                  ),
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                ),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: [
-                      FlSpot(0, 100),
-                      FlSpot(1, 500),
-                      FlSpot(2, 300),
-                      FlSpot(3, 450),
-                      FlSpot(4, 600),
-                      FlSpot(5, 400),
-                    ],
-                    isCurved: true,
-                    dotData: FlDotData(show: true),
-                    color: Colors.orange,
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.orange.withOpacity(0.3),
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(height: 8),
+
+          /// 💰 Display Total Income
+          Text(
+            "LKR ${totalIncome.toStringAsFixed(2)}",
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.orange,
             ),
           ),
+
+          const SizedBox(height: 20),
+
+          /// 📊 Revenue Chart
+          revenueSpots.isEmpty
+              ? const Center(child: Text("No revenue data available"))
+              : SizedBox(
+                height: 150,
+                child: LineChart(
+                  LineChartData(
+                    borderData: FlBorderData(show: false),
+
+                    titlesData: FlTitlesData(
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, _) {
+                            final index = value.toInt();
+                            final keys = revenueByDay.keys.toList()..sort();
+                            if (index < keys.length) {
+                              return Text(keys[index].split("-").last);
+                            }
+                            return const Text("");
+                          },
+                          interval: 1,
+                        ),
+                      ),
+
+                      topTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                    ),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: revenueSpots,
+                        isCurved: true,
+                        dotData: FlDotData(
+                          show: true,
+                          getDotPainter:
+                              (spot, percent, bar, index) => FlDotCirclePainter(
+                                radius: 2,
+                                color: Colors.orange,
+                                strokeWidth: 0,
+                              ),
+                        ),
+                        color: Colors.orange,
+                        belowBarData: BarAreaData(
+                          show: true,
+                          color: Colors.orange.withOpacity(0.3),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
         ],
       ),
     );

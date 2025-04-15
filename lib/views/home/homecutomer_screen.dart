@@ -56,17 +56,30 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
     }
   }
 
+  TextEditingController searchController = TextEditingController();
+  String searchQuery = "";
+
   @override
   Widget build(BuildContext context) {
-    final uniqueCategories = products.map((p) => p['name']).toSet().toList();
+    final filteredCategories =
+        products
+            .where(
+              (p) => p['name'].toString().toLowerCase().contains(searchQuery),
+            )
+            .map((p) => p['name'])
+            .toSet()
+            .toList();
 
-    final uniqueRestaurants =
+    final filteredRestaurants =
         products
             .where(
               (p) =>
                   p['restaurantName'] != null &&
                   p['images'] != null &&
-                  p['images'].isNotEmpty,
+                  p['images'].isNotEmpty &&
+                  p['restaurantName'].toString().toLowerCase().contains(
+                    searchQuery,
+                  ),
             )
             .map((p) => p['restaurantName'])
             .toSet()
@@ -82,15 +95,8 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
         elevation: 0,
         leading: PopupMenuButton<String>(
           icon: const Icon(Icons.menu, color: Colors.black),
-          onSelected: (value) {
-            if (value == 'track_order') {
-              Navigator.pushNamed(context, '/track_order');
-            }
-          },
-          itemBuilder:
-              (context) => const [
-                PopupMenuItem(value: 'track_order', child: Text('Track Order')),
-              ],
+          onSelected: (value) {},
+          itemBuilder: (context) => const [],
         ),
         actions: [
           CartButton(
@@ -106,13 +112,28 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                greetingMessage,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  children: [
+                    const TextSpan(text: "Hey "),
+                    TextSpan(
+                      text: greetingMessage
+                          .split(',')[0]
+                          .replaceAll('Hey ', ''),
+                      style: const TextStyle(color: Colors.orange),
+                    ),
+                    TextSpan(
+                      text: ", ${greetingMessage.split(',').last.trim()}",
+                    ),
+                  ],
                 ),
               ),
+
               const SizedBox(height: 15),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -120,8 +141,14 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const TextField(
-                  decoration: InputDecoration(
+                child: TextField(
+                  controller: searchController,
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value.toLowerCase();
+                    });
+                  },
+                  decoration: const InputDecoration(
                     icon: Icon(Icons.search, color: Colors.grey),
                     hintText: "Search dishes, restaurants",
                     border: InputBorder.none,
@@ -134,10 +161,10 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
                 height: 130,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: uniqueCategories.length,
+                  itemCount: filteredCategories.length,
                   itemBuilder: (context, index) {
                     final category = products.firstWhere(
-                      (p) => p['name'] == uniqueCategories[index],
+                      (p) => p['name'] == filteredCategories[index],
                     );
                     return _categoryCard(product: category, context: context);
                   },
@@ -145,11 +172,11 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
               ),
               const SizedBox(height: 20),
               _sectionTitle("Open Restaurants"),
-              uniqueRestaurants.isEmpty
+              filteredRestaurants.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : Column(
                     children:
-                        uniqueRestaurants
+                        filteredRestaurants
                             .map((restaurant) => _restaurantCard(restaurant))
                             .toList(),
                   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app_flutter/views/profile/CustomerProfileScreen.dart';
 import 'package:mobile_app_flutter/views/profile/DeliveryProfileScreen.dart';
+import 'package:mobile_app_flutter/views/profile/RestuarantProfileScreen.dart';
 import 'package:provider/provider.dart';
 import 'package:mobile_app_flutter/views/add_list/notification_screen.dart';
 import 'package:mobile_app_flutter/views/add_list/restaurant_add_screen.dart';
@@ -58,6 +59,7 @@ class AppRoutes {
   static const String restaurantAdd = '/restaurant_add_screen';
   static const String restaurantList = '/restaurant_list_screen';
   static const String restaurantNotifications = '/restaurant_notifications';
+  static const String restaurantProfile = '/restaurant_profile';
   static const String trackDelivery = '/track_delivery';
   static const String deliveryProfile = '/delivery_profile';
   static const String customerProfile = '/customer_profile';
@@ -77,6 +79,7 @@ class AppRoutes {
     restaurantNotifications: (context) => NotificationScreen(),
     deliveryProfile: (context) => DeliveryProfileScreen(),
     customerProfile: (context) => CustomerProfileScreen(),
+    restaurantProfile: (context) => RestuarantProfileScreen(),
   };
 
   /// Dynamic Route with Arguments
