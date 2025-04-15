@@ -13,46 +13,58 @@ class BottomNavBarForCustomer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+            color: Colors.black12,
+            blurRadius: 12,
+            offset: Offset(0, 4),
           ),
         ],
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
       ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+      child: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onTap,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        selectedItemColor: Colors.orange,
+        unselectedItemColor: Colors.grey[500],
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed,
+        selectedFontSize: 0,
+        unselectedFontSize: 0,
+        items: [
+          _buildBarItem(Icons.home_rounded, 0),
+          _buildBarItem(Icons.track_changes, 1),
+          _buildBarItem(Icons.person_outline, 2),
+        ],
+      ),
+    );
+  }
+
+  BottomNavigationBarItem _buildBarItem(
+    IconData icon,
+    int index, {
+    bool isCenter = false,
+  }) {
+    final bool isSelected = index == currentIndex;
+    return BottomNavigationBarItem(
+      label: '',
+      icon: Container(
+        decoration: BoxDecoration(
+          color:
+              isSelected ? Colors.orange.withOpacity(0.1) : Colors.transparent,
+          shape: BoxShape.circle,
         ),
-        child: BottomNavigationBar(
-          currentIndex: currentIndex,
-          onTap: onTap,
-          selectedItemColor: Colors.orange,
-          unselectedItemColor: Colors.grey,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded),
-              label: "Home",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.track_changes),
-              label: "Track Order",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              label: "Profile",
-            ),
-          ],
+        padding: const EdgeInsets.all(8),
+        child: Icon(
+          icon,
+          size: isSelected ? 28 : 24,
+          color: isSelected ? Colors.orange : Colors.grey[500],
         ),
       ),
     );
