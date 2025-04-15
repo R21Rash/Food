@@ -7,7 +7,7 @@ class CustomBottomNavBar extends StatelessWidget {
     : super(key: key);
 
   void _navigate(BuildContext context, int index) {
-    if (index == currentIndex) return; // avoid re-navigating to the same page
+    if (index == currentIndex) return;
 
     switch (index) {
       case 0:
@@ -31,19 +31,20 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
             color: Colors.black12,
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) => _navigate(context, index),
@@ -56,11 +57,11 @@ class CustomBottomNavBar extends StatelessWidget {
         selectedFontSize: 0,
         unselectedFontSize: 0,
         items: [
-          _buildBarItem(Icons.grid_view, 0),
-          _buildBarItem(Icons.menu, 1),
+          _buildBarItem(Icons.grid_view_rounded, 0),
+          _buildBarItem(Icons.menu_rounded, 1),
           _buildBarItem(Icons.add_circle, 2, isCenter: true),
-          _buildBarItem(Icons.notifications_none, 3),
-          _buildBarItem(Icons.person_outline, 4),
+          _buildBarItem(Icons.notifications_none_rounded, 3),
+          _buildBarItem(Icons.person_outline_rounded, 4),
         ],
       ),
     );
@@ -75,7 +76,10 @@ class CustomBottomNavBar extends StatelessWidget {
       label: '',
       icon: Container(
         decoration: BoxDecoration(
-          color: isCenter ? Colors.orange.withOpacity(0.1) : Colors.transparent,
+          color:
+              isCenter && currentIndex == index
+                  ? Colors.orange.withOpacity(0.1)
+                  : Colors.transparent,
           shape: BoxShape.circle,
         ),
         padding: const EdgeInsets.all(8),

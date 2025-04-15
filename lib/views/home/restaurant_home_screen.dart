@@ -25,8 +25,12 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     fetchOrderStats();
     fetchPopularItems();
     fetchRevenueChartData();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _promptAndFetchLocation(context);
+      Provider.of<LocationProvider>(
+        context,
+        listen: false,
+      ).fetchCurrentLocation();
     });
   }
 
@@ -194,6 +198,8 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+
         backgroundColor: Colors.grey[100],
         elevation: 0,
         title: Row(

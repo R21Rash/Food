@@ -125,14 +125,26 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
   }
 
   Future<void> _markOrderAsCompleted() async {
-    if (mounted) {
-      setState(() {
-        latestOrder = null;
-        currentStep = 0;
-        noOrders = true;
-      });
+    final orderId = latestOrder?['_id'];
+    if (orderId != null) {
+      final url = Uri.parse(
+        "http://192.168.8.163:5000/api/orders/mark-complete/$orderId",
+      );
+      final response = await http.put(url);
+
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            latestOrder = null;
+            currentStep = 0;
+            noOrders = true;
+          });
+          _startPolling(); // Restart polling for next orders
+        }
+      } else {
+        print("❌ Failed to mark order as completed");
+      }
     }
-    _startPolling(); // Start polling again for next order
   }
 
   @override
@@ -142,8 +154,9 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text("Track Order"),
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
         centerTitle: true,
       ),
       body: Padding(

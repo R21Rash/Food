@@ -9,17 +9,20 @@ class CustomerProfileScreen extends StatefulWidget {
 
 class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   String name = "Loading...";
+  String email = "Loading...";
+  String phone = "+94 77 123 4567"; // Demo static phone
 
   @override
   void initState() {
     super.initState();
-    loadName();
+    loadUserInfo();
   }
 
-  Future<void> loadName() async {
+  Future<void> loadUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       name = prefs.getString("name") ?? "Customer";
+      email = prefs.getString("email") ?? "example@gmail.com";
     });
   }
 
@@ -32,35 +35,68 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text("Profile"),
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.white,
+        elevation: 1,
+        foregroundColor: Colors.black,
+        centerTitle: true,
+        title: const Text(
+          "Profile",
+          style: TextStyle(fontWeight: FontWeight.normal),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Column(
-              children: [
-                const Icon(Icons.person, size: 100, color: Colors.orange),
-                const SizedBox(height: 20),
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.orange.withOpacity(0.1),
+              child: const Icon(Icons.person, size: 60, color: Colors.orange),
             ),
+            const SizedBox(height: 16),
+            Text(
+              name,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(email, style: TextStyle(color: Colors.grey[700])),
+            const SizedBox(height: 2),
+            Text(phone, style: TextStyle(color: Colors.grey[700])),
+
+            const SizedBox(height: 40),
+            const Divider(),
+
+            ListTile(
+              leading: const Icon(Icons.edit, color: Colors.orange),
+              title: const Text("Edit Profile"),
+              onTap: () {
+                // TODO: Navigate to edit screen
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline, color: Colors.orange),
+              title: const Text("About KFood App"),
+              onTap: () {
+                // TODO: Show about dialog
+              },
+            ),
+
+            const Spacer(),
+
             ElevatedButton.icon(
               onPressed: _logout,
               icon: const Icon(Icons.logout),
               label: const Text("Logout"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -70,7 +106,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
         currentIndex: 2,
         onTap: (index) {
           if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/home_customer');
+            Navigator.pushReplacementNamed(context, '/customer_home');
           } else if (index == 1) {
             Navigator.pushReplacementNamed(context, '/track_order');
           }

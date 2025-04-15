@@ -126,8 +126,33 @@ export const fetchPendingDeliveries = async (req, res) => {
 export const fetchOrdersByUserId = async (req, res) => {
   const { userId } = req.params;
   try {
-    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+    const orders = await Order.find({
+      userId,
+      isCompleted: false, // ✅ Exclude completed
+    }).sort({ createdAt: -1 });
     res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+// Mark an order as completed by user (frontend acknowledgment)
+export const markOrderAsCompletedByUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      { isCompleted: true },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Order marked as completed", order: updatedOrder });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
