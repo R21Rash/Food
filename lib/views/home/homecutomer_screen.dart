@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/views/components/bottom_nav_bar_for_customer.dart';
 import 'package:mobile_app_flutter/views/components/cart_button.dart';
 import 'package:mobile_app_flutter/views/components/cart_modal.dart';
 import 'package:mobile_app_flutter/views/item/customerItem_screen.dart';
@@ -12,58 +15,66 @@ class HomeCustomerScreen extends StatefulWidget {
 class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
   String greetingMessage = "Hey there!";
   List<Map<String, dynamic>> cartItems = [];
-  final List<Map<String, String>> categories = [
-    {"title": "Pizza", "image": "assets/images/pizza.jpg"},
-    {"title": "Burger", "image": "assets/images/burger.jpg"},
-    {"title": "Sandwich", "image": "assets/images/sandwich.jpg"},
-  ];
-
-  final List<Map<String, dynamic>> restaurants = [
-    {
-      "name": "Rose Garden Restaurant",
-      "description": "Burger - Chicken - Rice - Wings",
-      "image": "assets/images/resturent1.jpg",
-      "rating": 4.7,
-      "delivery": "Free",
-      "time": "20 min",
-    },
-    {
-      "name": "Urban Spice",
-      "description": "Pizza - Pasta - Salads",
-      "image": "assets/images/resturent2.jpg",
-      "rating": 4.5,
-      "delivery": "\$2",
-      "time": "30 min",
-    },
-  ];
+  List<Map<String, dynamic>> products = [];
 
   @override
   void initState() {
     super.initState();
     loadGreeting();
+    fetchProducts();
   }
 
   Future<void> loadGreeting() async {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('name') ?? "User";
-
     final hour = DateTime.now().hour;
-    String greeting;
-    if (hour < 12) {
-      greeting = "Good Morning";
-    } else if (hour < 17) {
-      greeting = "Good Afternoon";
-    } else {
-      greeting = "Good Evening";
-    }
-
+    String greeting =
+        hour < 12
+            ? "Good Morning"
+            : hour < 17
+            ? "Good Afternoon"
+            : "Good Evening";
     setState(() {
       greetingMessage = "Hey $name, $greeting!";
     });
   }
 
+  Future<void> fetchProducts() async {
+    const String apiUrl = "http://192.168.8.163:5000/api/products/all";
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          products = List<Map<String, dynamic>>.from(data);
+        });
+      } else {
+        print("Failed to fetch products: ${response.body}");
+      }
+    } catch (e) {
+      print("Error fetching products: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final uniqueCategories = products.map((p) => p['name']).toSet().toList();
+
+    final uniqueRestaurants =
+        products
+            .where(
+              (p) =>
+                  p['restaurantName'] != null &&
+                  p['images'] != null &&
+                  p['images'].isNotEmpty,
+            )
+            .map((p) => p['restaurantName'])
+            .toSet()
+            .map(
+              (name) => products.firstWhere((p) => p['restaurantName'] == name),
+            )
+            .toList();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -77,12 +88,8 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
             }
           },
           itemBuilder:
-              (context) => [
-                const PopupMenuItem(
-                  value: 'track_order',
-                  child: Text('Track Order'),
-                ),
-                // You can add more menu items here if needed
+              (context) => const [
+                PopupMenuItem(value: 'track_order', child: Text('Track Order')),
               ],
         ),
         actions: [
@@ -93,7 +100,6 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
           ),
         ],
       ),
-
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SingleChildScrollView(
@@ -128,23 +134,39 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
                 height: 130,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: categories.length,
+                  itemCount: uniqueCategories.length,
                   itemBuilder: (context, index) {
-                    return _categoryCard(categories[index], context);
+                    final category = products.firstWhere(
+                      (p) => p['name'] == uniqueCategories[index],
+                    );
+                    return _categoryCard(product: category, context: context);
                   },
                 ),
               ),
               const SizedBox(height: 20),
               _sectionTitle("Open Restaurants"),
-              Column(
-                children:
-                    restaurants
-                        .map((restaurant) => _restaurantCard(restaurant))
-                        .toList(),
-              ),
+              uniqueRestaurants.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                    children:
+                        uniqueRestaurants
+                            .map((restaurant) => _restaurantCard(restaurant))
+                            .toList(),
+                  ),
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavBarForCustomer(
+        currentIndex: 0, // Home is index 0
+        onTap: (index) {
+          if (index == 0) return;
+          if (index == 1) {
+            Navigator.pushReplacementNamed(context, '/track_order');
+          } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/customer_profile');
+          }
+        },
       ),
     );
   }
@@ -172,17 +194,19 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
     );
   }
 
-  Widget _categoryCard(Map<String, String> category, BuildContext context) {
+  Widget _categoryCard({
+    required Map<String, dynamic> product,
+    required BuildContext context,
+  }) {
+    final String title = product['name'];
+    final String image = product['images']?[0] ?? "";
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder:
-                (context) => CustomerItemScreen(
-                  title: category["title"]!,
-                  image: category["image"]!,
-                ),
+            builder: (context) => CustomerItemScreen(product: product),
           ),
         );
       },
@@ -206,12 +230,12 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15),
-                child: Image.asset(category["image"]!, fit: BoxFit.cover),
+                child: Image.network(image, fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 5),
             Text(
-              category["title"]!,
+              title,
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
           ],
@@ -221,6 +245,15 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
   }
 
   Widget _restaurantCard(Map<String, dynamic> restaurant) {
+    final name = restaurant['restaurantName'] ?? 'Unknown';
+    final desc = restaurant['description'] ?? 'No description';
+    final delivery = restaurant['deliveryType'] ?? 'Free';
+    final time = restaurant['time'] ?? '20 min';
+    final image =
+        (restaurant['images'] != null && restaurant['images'].isNotEmpty)
+            ? restaurant['images'][0]
+            : "https://via.placeholder.com/300";
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Container(
@@ -244,8 +277,8 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
                 topLeft: Radius.circular(15),
                 topRight: Radius.circular(15),
               ),
-              child: Image.asset(
-                restaurant["image"],
+              child: Image.network(
+                image,
                 width: double.infinity,
                 height: 150,
                 fit: BoxFit.cover,
@@ -257,7 +290,7 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    restaurant["name"],
+                    name,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -265,16 +298,16 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    restaurant["description"],
+                    desc,
                     style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
                       const Icon(Icons.star, color: Colors.orange, size: 18),
-                      Text(
-                        " ${restaurant["rating"]}",
-                        style: const TextStyle(
+                      const Text(
+                        " 4.7",
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
@@ -285,20 +318,14 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
                         color: Colors.orange,
                         size: 18,
                       ),
-                      Text(
-                        " ${restaurant["delivery"]}",
-                        style: const TextStyle(fontSize: 14),
-                      ),
+                      Text(" $delivery", style: const TextStyle(fontSize: 14)),
                       const SizedBox(width: 10),
                       const Icon(
                         Icons.access_time,
                         color: Colors.orange,
                         size: 18,
                       ),
-                      Text(
-                        " ${restaurant["time"]}",
-                        style: const TextStyle(fontSize: 14),
-                      ),
+                      Text(" $time", style: const TextStyle(fontSize: 14)),
                     ],
                   ),
                 ],

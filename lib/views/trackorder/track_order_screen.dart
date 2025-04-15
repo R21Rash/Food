@@ -1,17 +1,116 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/views/components/bottom_nav_bar_for_customer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class TrackOrderScreen extends StatelessWidget {
-  final List<String> steps = [
+class TrackOrderScreen extends StatefulWidget {
+  @override
+  _TrackOrderScreenState createState() => _TrackOrderScreenState();
+}
+
+class _TrackOrderScreenState extends State<TrackOrderScreen> {
+  List<String> steps = [
     "Your order has been received",
     "The restaurant is preparing your food",
     "Your order has been picked up for delivery",
     "Order arriving soon!",
   ];
 
-  final int currentStep = 1; // 👈 Change this to reflect the real progress
+  int currentStep = 0;
+  String courierName = "Your Courier";
+  Timer? _pollingTimer;
+  Timer? _countdownTimer;
+  Duration _eta = const Duration(minutes: 20); // 🕒 ETA Timer
+  Map<String, dynamic>? latestOrder;
 
-  // Sample courier name
-  final String courierName = "Rashad Cader";
+  @override
+  void initState() {
+    super.initState();
+    _startPolling();
+    _startCountdown(); // 🕒 Start ETA countdown
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startCountdown() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_eta.inSeconds > 0) {
+        setState(() {
+          _eta = _eta - const Duration(seconds: 1);
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  void _startPolling() {
+    fetchLatestOrderStatus();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      fetchLatestOrderStatus();
+    });
+  }
+
+  Future<void> fetchLatestOrderStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('user_id') ?? '';
+    final encodedUserId = Uri.encodeComponent(userId);
+
+    final url = 'http://192.168.8.163:5000/api/orders/by-user/$encodedUserId';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final orders = jsonDecode(response.body);
+
+        if (orders.isNotEmpty) {
+          final latest = orders[0];
+          final status = latest['orderStatus'] ?? "Order Received";
+
+          setState(() {
+            latestOrder = latest;
+            currentStep = _statusToStepIndex(status);
+            courierName = "Assigned Courier";
+          });
+
+          if (status == "Delivered") {
+            _pollingTimer?.cancel();
+          }
+        }
+      }
+    } catch (e) {
+      print("❌ Error fetching orders: $e");
+    }
+  }
+
+  int _statusToStepIndex(String status) {
+    switch (status) {
+      case "Order Received":
+        return 0;
+      case "Preparing":
+        return 1;
+      case "Picked for Delivery":
+        return 2;
+      case "Delivered":
+        return 3;
+      default:
+        return 0;
+    }
+  }
+
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return "$minutes:$seconds";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +128,65 @@ class TrackOrderScreen extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              "20 min",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              _eta.inSeconds > 0 ? _formatDuration(_eta) : "Soon",
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               "ESTIMATED DELIVERY TIME",
               style: TextStyle(color: Colors.grey[600]),
             ),
-            const SizedBox(height: 30),
-            ...List.generate(steps.length, (index) {
-              return _buildStep(index, steps[index], index == currentStep);
-            }),
+            const SizedBox(height: 20),
+
+            if (latestOrder != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Your Order",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  ...List.generate(latestOrder!['items'].length, (index) {
+                    final item = latestOrder!['items'][index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.fastfood,
+                            size: 20,
+                            color: Colors.orange,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "${item['title']} (x${item['quantity']}) - ${item['size'] ?? 'Regular'}",
+                              style: const TextStyle(fontSize: 15),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Total: Rs. ${latestOrder!['totalAmount']}",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.green,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                ],
+              ),
+
+            ...List.generate(
+              steps.length,
+              (index) => _buildStep(index, steps[index], index == currentStep),
+            ),
+
             const Spacer(),
             _buildCourierInfo(),
             const SizedBox(height: 20),
@@ -61,29 +207,33 @@ class TrackOrderScreen extends StatelessWidget {
           ],
         ),
       ),
+      bottomNavigationBar: BottomNavBarForCustomer(
+        currentIndex: 1,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, '/customer_home');
+          } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/customer_profile');
+          }
+        },
+      ),
     );
   }
 
   Widget _buildStep(int index, String text, bool isCurrent) {
-    Color getDotColor() {
-      if (index <= currentStep) return Colors.orange;
-      return Colors.grey[300]!;
-    }
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Column(
           children: [
             Icon(
-              index == 0
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
-              color: getDotColor(),
-              size: 20,
+              Icons.circle,
+              color:
+                  index <= currentStep ? Colors.orange : Colors.grey.shade300,
+              size: 16,
             ),
             if (index != steps.length - 1)
-              Container(height: 30, width: 2, color: Colors.grey[300]),
+              Container(height: 30, width: 2, color: Colors.grey.shade300),
           ],
         ),
         const SizedBox(width: 12),

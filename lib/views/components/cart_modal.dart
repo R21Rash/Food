@@ -36,6 +36,7 @@ class CartModal {
               ),
               child: Column(
                 children: [
+                  // Cart Title
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -59,6 +60,8 @@ class CartModal {
                       ],
                     ),
                   ),
+
+                  // Cart List
                   Expanded(
                     child:
                         cartItems.isEmpty
@@ -79,16 +82,24 @@ class CartModal {
                                   ),
                                   child: Row(
                                     children: [
+                                      // Product Image
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(10),
-                                        child: Image.asset(
+                                        child: Image.network(
                                           item["image"],
                                           width: 60,
                                           height: 60,
                                           fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (_, __, ___) => const Icon(
+                                                Icons.broken_image,
+                                                color: Colors.white,
+                                              ),
                                         ),
                                       ),
                                       const SizedBox(width: 15),
+
+                                      // Product Info
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
@@ -99,20 +110,19 @@ class CartModal {
                                               style: const TextStyle(
                                                 color: Colors.white,
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 16,
                                               ),
                                             ),
                                             Text(
-                                              "\$${item["price"]}",
+                                              "LKR ${item["price"]}",
                                               style: const TextStyle(
                                                 color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
+
+                                      // Quantity Controls
                                       Row(
                                         children: [
                                           IconButton(
@@ -121,7 +131,7 @@ class CartModal {
                                               color: Colors.white,
                                             ),
                                             onPressed: () {
-                                              setStateCallback(() {
+                                              setState(() {
                                                 if (item["quantity"] > 1) {
                                                   item["quantity"]--;
                                                 } else {
@@ -142,7 +152,7 @@ class CartModal {
                                               color: Colors.white,
                                             ),
                                             onPressed: () {
-                                              setStateCallback(() {
+                                              setState(() {
                                                 item["quantity"]++;
                                               });
                                             },
@@ -155,6 +165,8 @@ class CartModal {
                               },
                             ),
                   ),
+
+                  // Total Price
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
@@ -162,19 +174,20 @@ class CartModal {
                       children: [
                         const Text(
                           "TOTAL:",
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                          style: TextStyle(color: Colors.white70),
                         ),
                         Text(
                           "LKR ${_calculateTotalPrice(cartItems).toStringAsFixed(2)}",
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                   ),
+
+                  // Delivery Address
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -207,13 +220,17 @@ class CartModal {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            locationProvider.currentAddress,
+                            locationProvider.currentAddress.isEmpty
+                                ? "No address selected"
+                                : locationProvider.currentAddress,
                             style: const TextStyle(color: Colors.white),
                           ),
                         ),
                       ],
                     ),
                   ),
+
+                  // Place Order Button
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -233,39 +250,47 @@ class CartModal {
                       ),
                       onPressed:
                           cartItems.isEmpty
-                              ? null // Disables the button
+                              ? null
                               : () {
+                                final totalAmount = _calculateTotalPrice(
+                                  cartItems,
+                                ).toStringAsFixed(2);
                                 final payment = {
                                   "sandbox": true,
                                   "merchant_id": "1229906",
                                   "notify_url":
                                       "https://sandbox.payhere.lk/notify",
-                                  "order_id": "TESTORDER001",
-                                  "items": "Test Item",
-                                  "amount": "1000.00",
+                                  "order_id":
+                                      "ORDER_${DateTime.now().millisecondsSinceEpoch}",
+                                  "items": cartItems
+                                      .map((e) => e['title'])
+                                      .join(', '),
+                                  "amount": totalAmount,
                                   "currency": "LKR",
-                                  "first_name": "Test",
-                                  "last_name": "User",
-                                  "email": "test@user.com",
+                                  "first_name": "Fahmy",
+                                  "last_name": "Cader",
+                                  "email": "fahmy@example.com",
                                   "phone": "0771234567",
-                                  "address": "Test Address",
+                                  "address": locationProvider.currentAddress,
                                   "city": "Colombo",
                                   "country": "Sri Lanka",
                                 };
+
                                 PayHere.startPayment(
                                   payment,
                                   (paymentId) {
-                                    print("✅ Payment Success. ID: $paymentId");
-                                    Navigator.pop(context); // close modal
+                                    Navigator.pop(context);
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => PaymentSuccessScreen(),
+                                        builder:
+                                            (_) => PaymentSuccessScreen(
+                                              cartItems: cartItems,
+                                            ),
                                       ),
                                     );
                                   },
                                   (error) {
-                                    print("❌ Payment Failed: $error");
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text("Payment Failed: $error"),
@@ -276,7 +301,6 @@ class CartModal {
                                   () => print("ℹ️ Payment Dismissed"),
                                 );
                               },
-
                       child: const Center(
                         child: Text(
                           "PLACE ORDER",
@@ -314,11 +338,9 @@ class CartModal {
 
     try {
       Position? position = await Geolocator.getLastKnownPosition();
-      if (position == null) {
-        position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.best,
-        );
-      }
+      position ??= await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+      );
       selectedLocation = LatLng(position.latitude, position.longitude);
     } catch (e) {
       debugPrint("Location fetch failed: $e");
@@ -331,16 +353,15 @@ class CartModal {
         return SizedBox(
           height: MediaQuery.of(context).size.height * 0.85,
           child: FlutterMap(
-            mapController: MapController(),
             options: MapOptions(
               initialCenter: selectedLocation,
               initialZoom: 14.0,
-              onTap: (tapPosition, position) async {
+              onTap: (tapPosition, latLng) async {
                 String address = await locationProvider.getAddressFromLatLng(
-                  position.latitude,
-                  position.longitude,
+                  latLng.latitude,
+                  latLng.longitude,
                 );
-                locationProvider.updateLocation(position, address);
+                locationProvider.updateLocation(latLng, address);
               },
             ),
             children: [
