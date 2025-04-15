@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/views/components/bottom_nav_bar.dart';
 
 class EditProductScreen extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -96,51 +97,64 @@ class _EditProductScreenState extends State<EditProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/restaurant_list_screen');
+          },
+        ),
         title: const Text("Edit Product"),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        elevation: 1,
+        elevation: 0.5,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: ListView(
+        child: Column(
           children: [
             if (imageUrl != null)
               ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 child: Image.network(
                   imageUrl!,
                   height: 200,
+                  width: double.infinity,
                   fit: BoxFit.cover,
                   errorBuilder:
                       (context, error, stackTrace) => Container(
                         height: 200,
+                        width: double.infinity,
                         color: Colors.grey[300],
                         alignment: Alignment.center,
                         child: const Icon(Icons.broken_image, size: 40),
                       ),
                 ),
               ),
-            const SizedBox(height: 20),
-            _buildTextField("Name", nameController),
-            _buildTextField(
-              "Price",
-              priceController,
-              keyboardType: TextInputType.number,
-            ),
-            _buildTextField("Description", descController, maxLines: 4),
-            _buildDropdown("Status", ["Available", "Not Available"], status, (
-              val,
-            ) {
-              setState(() => status = val!);
-            }),
-            _buildDropdown("Delivery Type", ["Free", "Paid"], deliveryType, (
-              val,
-            ) {
-              setState(() => deliveryType = val!);
-            }),
+            const SizedBox(height: 24),
+            _buildCardSection([
+              _buildTextField("Name", nameController),
+              _buildTextField(
+                "Price",
+                priceController,
+                keyboardType: TextInputType.number,
+              ),
+              _buildTextField("Description", descController, maxLines: 3),
+              _buildDropdown(
+                "Status",
+                ["Available", "Not Available"],
+                status,
+                (val) => setState(() => status = val!),
+              ),
+              _buildDropdown(
+                "Delivery Type",
+                ["Free", "Paid"],
+                deliveryType,
+                (val) => setState(() => deliveryType = val!),
+              ),
+            ]),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: updateProduct,
@@ -149,7 +163,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -162,12 +179,34 @@ class _EditProductScreenState extends State<EditProductScreen> {
               ),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.red),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
         ),
       ),
+      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 1),
+    );
+  }
+
+  Widget _buildCardSection(List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(children: children),
     );
   }
 
@@ -187,7 +226,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
           labelText: label,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: Colors.grey[50],
         ),
       ),
     );
@@ -201,18 +240,46 @@ class _EditProductScreenState extends State<EditProductScreen> {
   ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: DropdownButtonFormField<String>(
-        value: currentValue,
-        items:
-            options
-                .map((val) => DropdownMenuItem(value: val, child: Text(val)))
-                .toList(),
-        onChanged: onChanged,
+      child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          labelStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Colors.grey),
+          ),
           filled: true,
           fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 5,
+          ),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.orange),
+            value: currentValue,
+            dropdownColor: Colors.white,
+            style: const TextStyle(color: Colors.black, fontSize: 14),
+            borderRadius: BorderRadius.circular(12),
+            onChanged: onChanged,
+            items:
+                options
+                    .map(
+                      (val) => DropdownMenuItem(
+                        value: val,
+                        child: Text(
+                          val,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    )
+                    .toList(),
+          ),
         ),
       ),
     );

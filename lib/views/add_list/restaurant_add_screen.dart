@@ -136,12 +136,19 @@ class _RestaurantAddScreenState extends State<RestaurantAddScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         backgroundColor: Colors.white,
+
         elevation: 1,
+        centerTitle: true,
         title: const Text(
           "Add New Item",
           style: TextStyle(color: Colors.black),
         ),
-        leading: const BackButton(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/restaurant_home');
+          },
+        ),
         actions: [
           TextButton(
             onPressed:
