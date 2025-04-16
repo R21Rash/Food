@@ -38,7 +38,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   Future<void> updateProduct() async {
     final id = widget.product['_id'];
-    final uri = Uri.parse("http://192.168.8.163:5000/api/products/$id");
+    final uri = Uri.parse("http://192.168.8.163:5004/api/products/$id");
 
     final response = await http.put(
       uri,
@@ -72,7 +72,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   Future<void> deleteProduct() async {
     final id = widget.product['_id'];
-    final uri = Uri.parse("http://192.168.8.163:5000/api/products/$id");
+    final uri = Uri.parse("http://192.168.8.163:5004/api/products/$id");
 
     final response = await http.delete(uri);
 

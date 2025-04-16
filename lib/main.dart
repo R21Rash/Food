@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// ✅ Routing Configuration
+///  Routing Configuration
 class AppRoutes {
   static const String splash = '/splash';
   static const String onboarding = '/onboarding';

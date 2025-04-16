@@ -40,7 +40,7 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
   }
 
   Future<void> fetchProducts() async {
-    const String apiUrl = "http://192.168.8.163:5000/api/products/all";
+    const String apiUrl = "http://192.168.8.163:5004/api/products/all";
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {

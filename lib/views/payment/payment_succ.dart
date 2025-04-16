@@ -23,7 +23,7 @@ class PaymentSuccessScreen extends StatelessWidget {
 
     final orderId = "ORDER_${DateTime.now().millisecondsSinceEpoch}";
 
-    /// ✅ Add restaurantName into each cart item
+    ///  Add restaurantName into each cart item
     final updatedCartItems =
         cartItems.map((item) {
           return {
@@ -39,7 +39,7 @@ class PaymentSuccessScreen extends StatelessWidget {
       "orderId": orderId,
       "items": updatedCartItems,
       "totalAmount": _calculateTotalPrice(cartItems).toStringAsFixed(2),
-      "orderStatus": "Order Received", // ✅ added status
+      "orderStatus": "Order Received", //  added status
       "deliveryLocation": {
         "lat": locationProvider.currentLocation.latitude,
         "lng": locationProvider.currentLocation.longitude,
@@ -51,7 +51,7 @@ class PaymentSuccessScreen extends StatelessWidget {
     print(json.encode(order));
 
     final response = await http.post(
-      Uri.parse("http://192.168.8.163:5000/api/orders/create"),
+      Uri.parse("http://192.168.8.163:5003/api/orders/create"),
       headers: {"Content-Type": "application/json"},
       body: json.encode(order),
     );
