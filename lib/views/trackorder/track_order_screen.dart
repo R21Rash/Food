@@ -69,7 +69,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('user_id') ?? '';
     final encodedUserId = Uri.encodeComponent(userId);
-    final url = 'http://192.168.8.163:5003/api/orders/by-user/$encodedUserId';
+    final url = 'http://192.168.8.163:32189/api/orders/by-user/$encodedUserId';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -128,7 +128,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     final orderId = latestOrder?['_id'];
     if (orderId != null) {
       final url = Uri.parse(
-        "http://192.168.8.163:5003/api/orders/mark-complete/$orderId",
+        "http://192.168.8.163:32189/api/orders/mark-complete/$orderId",
       );
       final response = await http.put(url);
 

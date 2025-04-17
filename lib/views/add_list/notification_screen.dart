@@ -30,7 +30,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     final response = await http.get(
       Uri.parse(
-        'http://192.168.8.163:5003/api/orders/by-restaurant/$encodedName',
+        'http://192.168.8.163:32189/api/orders/by-restaurant/$encodedName',
       ),
     );
 
@@ -56,7 +56,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
     final response = await http.put(
-      Uri.parse('http://192.168.8.163:5003/api/orders/update/$orderId'),
+      Uri.parse('http://192.168.8.163:32189/api/orders/update/$orderId'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"orderStatus": newStatus}),
     );

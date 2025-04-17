@@ -30,7 +30,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
 
   Future<void> fetchPendingOrders() async {
     final response = await http.get(
-      Uri.parse('http://192.168.8.163:5003/api/orders/pending-delivery'),
+      Uri.parse('http://192.168.8.163:32189/api/orders/pending-delivery'),
     );
 
     if (response.statusCode == 200) {
