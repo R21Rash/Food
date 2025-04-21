@@ -12,18 +12,19 @@ class LocationProvider with ChangeNotifier {
   LatLng get currentLocation => _currentLocation;
   String get currentAddress => _currentAddress;
 
-  /// **Fetch Current Location & Store Globally**
   Future<void> fetchCurrentLocation() async {
     if (await Permission.location.request().isGranted) {
       try {
-        Position position =
-            await Geolocator.getLastKnownPosition() ??
-            await Geolocator.getCurrentPosition(
-              desiredAccuracy: LocationAccuracy.best,
-              timeLimit: const Duration(seconds: 5),
-            );
+        Position? position = await Geolocator.getLastKnownPosition();
 
-        String address = await getAddressFromLatLng(
+        if (position == null) {
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.best,
+            timeLimit: const Duration(seconds: 5),
+          );
+        }
+
+        final address = await getAddressFromLatLng(
           position.latitude,
           position.longitude,
         );
@@ -41,20 +42,17 @@ class LocationProvider with ChangeNotifier {
     }
   }
 
-  /// **Manually Update Location (User Chooses New Location)**
   void updateLocation(LatLng newLocation, String newAddress) {
     _currentLocation = newLocation;
     _currentAddress = newAddress;
     notifyListeners();
   }
 
-  /// **Make this method PUBLIC so other files can access it**
   Future<String> getAddressFromLatLng(double lat, double lng) async {
     try {
       final url = Uri.parse(
         "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng",
       );
-
       final response = await http.get(url);
 
       if (response.statusCode == 200) {

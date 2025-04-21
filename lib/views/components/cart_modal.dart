@@ -334,7 +334,11 @@ class CartModal {
       context,
       listen: false,
     );
+
     LatLng selectedLocation = locationProvider.currentLocation;
+    TextEditingController addressController = TextEditingController(
+      text: locationProvider.currentAddress,
+    );
 
     try {
       Position? position = await Geolocator.getLastKnownPosition();
@@ -349,43 +353,161 @@ class CartModal {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return SizedBox(
-          height: MediaQuery.of(context).size.height * 0.85,
-          child: FlutterMap(
-            options: MapOptions(
-              initialCenter: selectedLocation,
-              initialZoom: 14.0,
-              onTap: (tapPosition, latLng) async {
-                String address = await locationProvider.getAddressFromLatLng(
-                  latLng.latitude,
-                  latLng.longitude,
-                );
-                locationProvider.updateLocation(latLng, address);
-              },
-            ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                subdomains: ['a', 'b', 'c'],
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: selectedLocation,
-                    width: 80.0,
-                    height: 80.0,
-                    child: const Icon(
-                      Icons.location_pin,
-                      size: 40.0,
-                      color: Colors.red,
-                    ),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.9,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB), // soft gray background
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
                   ),
                 ],
               ),
-            ],
-          ),
+              child: Column(
+                children: [
+                  // Top map section
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(25),
+                      topRight: Radius.circular(25),
+                    ),
+                    child: Container(
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      color: Colors.amber[300],
+                      child: FlutterMap(
+                        options: MapOptions(
+                          initialCenter: selectedLocation,
+                          initialZoom: 14.0,
+                          onTap: (tapPosition, latLng) async {
+                            setState(() => selectedLocation = latLng);
+
+                            String address = await locationProvider
+                                .getAddressFromLatLng(
+                                  latLng.latitude,
+                                  latLng.longitude,
+                                );
+
+                            setState(() {
+                              addressController.text = address;
+                            });
+                          },
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                            subdomains: ['a', 'b', 'c'],
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: selectedLocation,
+                                width: 80.0,
+                                height: 80.0,
+                                child: const Icon(
+                                  Icons.location_pin,
+                                  size: 40.0,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Address input
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 20,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Delivery Address",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: addressController,
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            hintText: "Enter delivery location...",
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 16,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            suffixIcon: const Icon(Icons.edit_location_alt),
+                          ),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Save Button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          locationProvider.updateLocation(
+                            selectedLocation,
+                            addressController.text.trim().isEmpty
+                                ? "Custom address"
+                                : addressController.text.trim(),
+                          );
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          elevation: 2,
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: const Text(
+                          "Save Address",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
         );
       },
     );
