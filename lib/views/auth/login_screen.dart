@@ -13,11 +13,28 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
 
-  final String backendUrl =
-      "http://192.168.8.163:5000/api/auth/login"; // ✅ Your backend IP
+  final String backendUrl = "http://192.168.8.163:30409/api/auth/login";
 
   Future<void> loginUser() async {
+    print("🚀 loginUser() called");
+
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      print("❗ Email or password is empty");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter both email and password."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => isLoading = true);
+
+    print("📡 Sending login request to $backendUrl");
+    print(
+      "📤 Request Body: ${emailController.text} / ${passwordController.text}",
+    );
 
     try {
       final response = await http.post(
@@ -29,19 +46,17 @@ class _LoginScreenState extends State<LoginScreen> {
         }),
       );
 
-      final data = jsonDecode(response.body);
-      print("Login Response: $data");
+      print("📨 Response Code: ${response.statusCode}");
+      print("📨 Response Body: ${response.body}");
 
+      final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data["user"] != null) {
         final role = data["user"]["role"] ?? "";
-        print("User Role: $role");
-
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString("role", role);
         await prefs.setString("email", data["user"]["email"]);
         await prefs.setString("user_id", data["user"]["_id"]);
         await prefs.setString("fullName", data["user"]["fullName"] ?? "User");
-        // ✅ Store both name and restaurantName separately
         await prefs.setString(
           "name",
           data["user"]["fullName"] ?? data["user"]["restaurantName"] ?? "User",
@@ -51,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
           data["user"]["restaurantName"] ?? "Restaurant",
         );
 
-        print("✅ Stored restaurantName: ${data["user"]["restaurantName"]}");
+        print("✅ Login success! Redirecting user with role: $role");
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -60,7 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
 
-        // ✅ Navigate based on user role
         switch (role) {
           case "Customer":
             Navigator.pushReplacementNamed(context, '/customer_home');
@@ -72,6 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.pushReplacementNamed(context, '/delivery_home');
             break;
           default:
+            print("❌ Unknown user role");
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Unknown user role"),
@@ -80,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
         }
       } else {
+        print("❌ Login failed: ${data["message"]}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data["message"] ?? "Login failed"),
@@ -88,6 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
+      print("❌ Connection Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Connection Error: $e"),
@@ -101,111 +118,135 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E2D),
-      body: Stack(
-        children: [
-          Container(height: 280, color: const Color(0xFF1E1E2D)),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.70,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(25),
-                child: SingleChildScrollView(
+      resizeToAvoidBottomInset: false,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: [
+              Container(height: 280, color: const Color(0xFF1E1E2D)),
+
+              if (!isKeyboardOpen)
+                const Positioned(
+                  top: 100,
+                  left: 0,
+                  right: 0,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      buildTextField(
-                        "EMAIL",
-                        "example@gmail.com",
-                        controller: emailController,
-                      ),
-                      buildTextField(
-                        "PASSWORD",
-                        "********",
-                        isPassword: true,
-                        controller: passwordController,
-                      ),
-                      const SizedBox(height: 20),
-                      isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 15,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              onPressed: loginUser,
-                              child: const Text(
-                                "LOG IN",
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ),
-                      const SizedBox(height: 15),
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text("Don't have an account? "),
-                            TextButton(
-                              onPressed:
-                                  () => Navigator.pushNamed(context, '/signup'),
-                              child: const Text(
-                                "SIGN UP",
-                                style: TextStyle(
-                                  color: Colors.orange,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
+                      Text(
+                        "Log In",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        "Please sign in to your existing account",
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
-          ),
-          const Positioned(
-            top: 100,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                Text(
-                  "Log In",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  height:
+                      isKeyboardOpen
+                          ? constraints.maxHeight
+                          : constraints.maxHeight * 0.50,
+                  decoration: const BoxDecoration(
                     color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(25),
+                    child: SingleChildScrollView(
+                      reverse: true,
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          buildTextField(
+                            "EMAIL",
+                            "example@gmail.com",
+                            controller: emailController,
+                          ),
+                          buildTextField(
+                            "PASSWORD",
+                            "********",
+                            isPassword: true,
+                            controller: passwordController,
+                          ),
+                          const SizedBox(height: 20),
+                          isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 15,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    print("🟠 LOGIN BUTTON PRESSED");
+                                    loginUser();
+                                  },
+                                  child: const Text(
+                                    "LOG IN",
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ),
+                          const SizedBox(height: 15),
+                          Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text("Don't have an account? "),
+                                TextButton(
+                                  onPressed:
+                                      () => Navigator.pushNamed(
+                                        context,
+                                        '/signup',
+                                      ),
+                                  child: const Text(
+                                    "SIGN UP",
+                                    style: TextStyle(
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                SizedBox(height: 5),
-                Text(
-                  "Please sign in to your existing account",
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }

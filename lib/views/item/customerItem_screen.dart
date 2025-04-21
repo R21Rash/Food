@@ -44,7 +44,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
   }
 
   Future<void> fetchProducts() async {
-    const String apiUrl = "http://192.168.8.163:5000/api/products/all";
+    const String apiUrl = "http://192.168.8.163:31201/api/products/all";
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -192,7 +192,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white, // 🟢 White text
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -208,7 +208,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
             ),
             const SizedBox(height: 30),
 
-            /// 💡 Nicer "More Items" section
+            ///  section
             if (relatedProducts.isNotEmpty) ...[
               const Text(
                 "More Items",

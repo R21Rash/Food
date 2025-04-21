@@ -1,51 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app_flutter/views/trackorder/DeliveryTrackingScreen.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:mobile_app_flutter/views/auth/login_screen.dart';
+import 'package:mobile_app_flutter/views/auth/signup_screen.dart';
+import 'package:mobile_app_flutter/views/home/homecutomer_screen.dart';
+import 'package:mobile_app_flutter/views/home/restaurant_home_screen.dart';
+import 'package:mobile_app_flutter/views/home/delivery_home_screen.dart';
+import 'package:mobile_app_flutter/views/onboarding/onboarding_screen.dart';
+import 'package:mobile_app_flutter/views/splash_screen.dart';
+import 'package:mobile_app_flutter/views/trackorder/track_order_screen.dart';
+
+import 'package:mobile_app_flutter/views/add_list/restaurant_add_screen.dart';
+import 'package:mobile_app_flutter/views/add_list/restaurant_list_screen.dart';
+import 'package:mobile_app_flutter/views/add_list/notification_screen.dart';
 import 'package:mobile_app_flutter/views/profile/CustomerProfileScreen.dart';
 import 'package:mobile_app_flutter/views/profile/DeliveryProfileScreen.dart';
 import 'package:mobile_app_flutter/views/profile/RestuarantProfileScreen.dart';
-import 'package:provider/provider.dart';
-import 'package:mobile_app_flutter/views/add_list/notification_screen.dart';
-import 'package:mobile_app_flutter/views/add_list/restaurant_add_screen.dart';
-import 'package:mobile_app_flutter/views/add_list/restaurant_list_screen.dart';
 import 'package:mobile_app_flutter/views/components/location_provider.dart';
-import 'package:mobile_app_flutter/views/trackorder/DeliveryTrackingScreen.dart';
-import 'package:mobile_app_flutter/views/trackorder/track_order_screen.dart';
+import 'package:mobile_app_flutter/views/components/location_widget.dart';
+import 'package:mobile_app_flutter/views/item/restaurant_details_screen.dart';
 
-import 'package:mobile_app_flutter/views/auth/signup_screen.dart';
-import 'package:mobile_app_flutter/views/home/homecutomer_screen.dart';
-import 'package:mobile_app_flutter/views/splash_screen.dart';
-import 'package:mobile_app_flutter/views/onboarding/onboarding_screen.dart';
-import 'package:mobile_app_flutter/views/auth/login_screen.dart';
-import 'package:mobile_app_flutter/views/home/restaurant_home_screen.dart';
-import 'package:mobile_app_flutter/views/home/delivery_home_screen.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
 
-void main() {
-  runApp(
-    MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => LocationProvider())],
-      child: const MyApp(),
-    ),
-  );
+  final bool seenOnboarding = prefs.getBool('seenOnboarding') ?? false;
+  final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+  String initialRoute;
+  if (!seenOnboarding) {
+    initialRoute = AppRoutes.onboarding;
+  } else if (isLoggedIn) {
+    final role = prefs.getString("role");
+    if (role == "Customer") {
+      initialRoute = AppRoutes.customerHome;
+    } else if (role == "Restaurant") {
+      initialRoute = AppRoutes.restaurantHome;
+    } else if (role == "Delivery") {
+      initialRoute = AppRoutes.deliveryHome;
+    } else {
+      initialRoute = AppRoutes.login;
+    }
+  } else {
+    initialRoute = AppRoutes.login;
+  }
+
+  runApp(MyApp(initialRoute: initialRoute));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
-    context.read<LocationProvider>().fetchCurrentLocation();
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Food App',
-      theme: ThemeData(primaryColor: Colors.orange, fontFamily: 'Poppins'),
-      initialRoute: AppRoutes.splash,
-      routes: AppRoutes.staticRoutes,
-      onGenerateRoute: AppRoutes.onGenerateRoute,
+    return MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => LocationProvider())],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Food App',
+        theme: ThemeData(primaryColor: Colors.orange, fontFamily: 'Poppins'),
+        initialRoute: initialRoute,
+        routes: AppRoutes.staticRoutes,
+        onGenerateRoute: AppRoutes.onGenerateRoute,
+      ),
     );
   }
 }
 
-/// ✅ Routing Configuration
 class AppRoutes {
   static const String splash = '/splash';
   static const String onboarding = '/onboarding';
@@ -55,7 +79,6 @@ class AppRoutes {
   static const String restaurantHome = '/restaurant_home';
   static const String deliveryHome = '/delivery_home';
   static const String trackOrder = '/track_order';
-
   static const String restaurantAdd = '/restaurant_add_screen';
   static const String restaurantList = '/restaurant_list_screen';
   static const String restaurantNotifications = '/restaurant_notifications';
@@ -63,8 +86,9 @@ class AppRoutes {
   static const String trackDelivery = '/track_delivery';
   static const String deliveryProfile = '/delivery_profile';
   static const String customerProfile = '/customer_profile';
+  static const String restaurantDetails = '/restaurant_details';
+  static const String testLocation = '/location_widget';
 
-  /// Static Routes (no arguments needed)
   static Map<String, WidgetBuilder> get staticRoutes => {
     splash: (context) => SplashScreen(),
     onboarding: (context) => OnboardingScreen(),
@@ -80,9 +104,13 @@ class AppRoutes {
     deliveryProfile: (context) => DeliveryProfileScreen(),
     customerProfile: (context) => CustomerProfileScreen(),
     restaurantProfile: (context) => RestuarantProfileScreen(),
+    testLocation:
+        (context) => Scaffold(
+          appBar: AppBar(title: const Text("Test Location Widget")),
+          body: const LocationWidget(),
+        ),
   };
 
-  /// Dynamic Route with Arguments
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     if (settings.name == trackDelivery) {
       final order = settings.arguments as Map<String, dynamic>?;
@@ -93,6 +121,22 @@ class AppRoutes {
       }
     }
 
-    return null; // fallback for unknown routes
+    if (settings.name == restaurantDetails) {
+      final restaurantName = settings.arguments as String?;
+      if (restaurantName != null && restaurantName.isNotEmpty) {
+        return MaterialPageRoute(
+          builder:
+              (_) => RestaurantDetailsScreen(restaurantName: restaurantName),
+        );
+      }
+    }
+
+    return null;
   }
+}
+
+Future<void> logoutUser(BuildContext context) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
+  Navigator.pushReplacementNamed(context, AppRoutes.login);
 }

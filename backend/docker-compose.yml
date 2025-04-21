@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  auth-service:
+    build:
+      context: ./auth-service
+    ports:
+      - "5001:5001"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/auth-service-db
+    depends_on:
+      - mongo
+
+  product-service:
+    build:
+      context: ./product-service
+    ports:
+      - "5004:5004"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/product-service-db
+    depends_on:
+      - mongo
+
+  order-service:
+    build:
+      context: ./order-service
+    ports:
+      - "5003:5003"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/order-service-db
+    depends_on:
+      - mongo
+
+  location-service:
+    build:
+      context: ./location-service
+    ports:
+      - "5002:5002"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/location-service-db
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

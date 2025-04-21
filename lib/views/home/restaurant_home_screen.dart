@@ -64,7 +64,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     final name = prefs.getString('restaurantName') ?? '';
     final encodedName = Uri.encodeComponent(name);
     final url =
-        "http://192.168.8.163:5000/api/orders/by-restaurant/$encodedName";
+        "http://192.168.8.163:32189/api/orders/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -108,7 +108,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     final name = prefs.getString('restaurantName') ?? '';
     final encodedName = Uri.encodeComponent(name);
     final url =
-        "http://192.168.8.163:5000/api/orders/by-restaurant/$encodedName";
+        "http://192.168.8.163:32189/api/orders/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -149,7 +149,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     final name = prefs.getString('restaurantName') ?? '';
     final encodedName = Uri.encodeComponent(name);
     final url =
-        "http://192.168.8.163:5000/api/products/by-restaurant/$encodedName";
+        "http://192.168.8.163:31201/api/products/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));

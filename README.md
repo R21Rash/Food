@@ -14,3 +14,10 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+to run
+
+1. open docker Kubernetes should enabled
+   2.⏳ Wait until docker desktop and kubernetes are both up and running.
+2. cd backend -> kubectl config current-context ---> output ---> docker-desktop
+3. kubectl get pods -n foodapp

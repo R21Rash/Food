@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: foodapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: rashad123123/product-service:v1
+          ports:
+            - containerPort: 5004
+          env:
+            - name: MONGO_URL
+              value: mongodb://mongo:27017/product-service-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: foodapp
+spec:
+  selector:
+    app: product-service
+  ports:
+    - port: 5004
+      targetPort: 5004
+  type: NodePort

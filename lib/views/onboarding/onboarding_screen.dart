@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
   @override
@@ -13,27 +14,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       "title": "All your favorites",
       "description":
-          "Get all your loved foods in one once place, you just place the order we do the rest",
+          "Get all your loved foods in one place. You just place the order — we do the rest!",
       "image": "assets/images/onboarding1.png",
     },
     {
       "title": "Order from chosen chef",
       "description":
-          "Get all your loved foods in one once place, you just place the order we do the rest",
+          "Choose your favorite chef and enjoy freshly prepared meals delivered to your door.",
       "image": "assets/images/onboarding2.png",
     },
     {
       "title": "Free delivery offers",
       "description":
-          "Get all your loved foods in one once place, you just place the order we do the rest",
+          "Enjoy limited-time free delivery deals and exclusive promotions for loyal users.",
       "image": "assets/images/onboarding3.png",
     },
   ];
 
+  Future<void> completeOnboarding() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool("hasSeenOnboarding", true);
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // ✅ Set white background
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           Expanded(
@@ -74,20 +81,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange, // Button color
-                        foregroundColor: Colors.white, // Text color
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            8,
-                          ), // Rounded corners
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 15,
-                        ), // Button height
+                        padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
                       onPressed: () {
                         if (_currentPage == onboardingData.length - 1) {
-                          Navigator.pushNamed(context, '/login');
+                          completeOnboarding(); // ✅ Set flag and go to login
                         } else {
                           _pageController.nextPage(
                             duration: const Duration(milliseconds: 300),
@@ -111,9 +114,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const SizedBox(height: 10),
 
                 TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/login');
-                  },
+                  onPressed: completeOnboarding, // ✅ Set flag on skip
                   child: const Text(
                     "Skip",
                     style: TextStyle(
@@ -156,10 +157,10 @@ class OnboardingContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center, // ✅ Move content down
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(height: 80), // Extra space at the top
-        Image.asset(image, height: 300), // ✅ Move image lower
+        const SizedBox(height: 80),
+        Image.asset(image, height: 300),
         const SizedBox(height: 50),
         Text(
           title,

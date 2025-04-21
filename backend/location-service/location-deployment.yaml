@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: location-service
+  namespace: foodapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: location-service
+  template:
+    metadata:
+      labels:
+        app: location-service
+    spec:
+      containers:
+        - name: location-service
+          image: rashad123123/location-service:v1
+          ports:
+            - containerPort: 5002
+          env:
+            - name: MONGO_URL
+              value: mongodb://mongo:27017/location-service-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: location-service
+  namespace: foodapp
+spec:
+  selector:
+    app: location-service
+  ports:
+    - port: 5002
+      targetPort: 5002
+  type: NodePort

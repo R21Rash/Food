@@ -31,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen>
       _fadeController.forward();
     });
 
-    // ⏳ Navigate to Onboarding after 3 seconds
+    //  Navigate to Onboarding after 3 seconds
     Timer(Duration(seconds: 3), () {
       Navigator.pushReplacementNamed(context, '/onboarding');
     });
@@ -49,7 +49,7 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          /// ✅ **Top Left Decoration (Animated Fade-In)**
+          ///  **Top Left Decoration (Animated Fade-In)**
           Positioned(
             top: 0,
             left: 0,
@@ -62,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          /// ✅ **Bottom Right Decoration (Animated Fade-In)**
+          ///  **Bottom Right Decoration (Animated Fade-In)**
           Positioned(
             bottom: 0,
             right: 0,
@@ -75,10 +75,10 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          /// ✅ **Logo at Center**
+          ///  **Logo at Center**
           Center(
             child: Image.asset(
-              'assets/images/Logo.png', // Your logo
+              'assets/images/Logo.png', // logo
               width: 150,
             ),
           ),
