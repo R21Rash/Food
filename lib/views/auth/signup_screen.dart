@@ -19,8 +19,9 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
 
-  final String backendUrl = "http://192.168.8.163:30409/api/auth/signup";
+  final String backendUrl = "http://192.168.150.48:5001/api/auth/signup";
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +153,11 @@ class _SignupScreenState extends State<SignupScreen> {
                             controller: emailController,
                           ),
                           buildTextField(
+                            "Phone Number",
+                            "Enter your phone number",
+                            controller: phoneController,
+                          ),
+                          buildTextField(
                             "Password",
                             "********",
                             isPassword: true,
@@ -268,6 +274,7 @@ class _SignupScreenState extends State<SignupScreen> {
           "fullName": selectedRole != "Restaurant" ? name : null,
           "restaurantName": selectedRole == "Restaurant" ? name : null,
           "email": emailController.text,
+          "phone": phoneController.text,
           "password": passwordController.text,
         }),
       );

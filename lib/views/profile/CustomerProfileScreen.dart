@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import 'package:mobile_app_flutter/views/components/bottom_nav_bar_for_customer.dart';
+import 'package:mobile_app_flutter/views/profile/edit_customer_profile_screen.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
   @override
@@ -10,7 +14,8 @@ class CustomerProfileScreen extends StatefulWidget {
 class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   String name = "Loading...";
   String email = "Loading...";
-  String phone = "+94 77 123 4567"; // Demo static phone
+  String phone = "Loading...";
+  String status = "active";
 
   @override
   void initState() {
@@ -23,13 +28,104 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     setState(() {
       name = prefs.getString("name") ?? "Customer";
       email = prefs.getString("email") ?? "example@gmail.com";
+      phone = prefs.getString("phone") ?? "+94 77 123 4567";
+      status = prefs.getString("status") ?? "active";
     });
   }
 
   void _logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.clear(); // Clear all shared preferences
     Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+  }
+
+  void _deactivateAccount() async {
+    String? confirmation = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        TextEditingController controller = TextEditingController();
+        return AlertDialog(
+          title: const Text("Confirm Deactivation"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("To confirm, type 'deactivate' below."),
+              const SizedBox(height: 10),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  hintText: "Type 'deactivate' to confirm",
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, null),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.trim().toLowerCase() == "deactivate") {
+                  Navigator.pop(context, controller.text);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Please type 'deactivate' to confirm."),
+                    ),
+                  );
+                }
+              },
+              child: const Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmation == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString("email");
+
+    if (email == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email not found. Try logging in again.")),
+      );
+      return;
+    }
+
+    final url = Uri.parse("http://192.168.150.48:5001/api/auth/deactivate");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        await prefs.setString("status", "inactive");
+        setState(() => status = "inactive");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Account deactivated successfully")),
+        );
+
+        // Clear shared preferences and log the user out
+        await prefs.clear();
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+      } else {
+        final body = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed: ${body['message'] ?? 'Try again'}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+    }
   }
 
   @override
@@ -65,27 +161,63 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             Text(email, style: TextStyle(color: Colors.grey[700])),
             const SizedBox(height: 2),
             Text(phone, style: TextStyle(color: Colors.grey[700])),
-
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Status: "),
+                Text(
+                  status == "active" ? "Active" : "Inactive",
+                  style: TextStyle(
+                    color: status == "active" ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            if (status == "active") ...[
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _deactivateAccount,
+                icon: const Icon(Icons.block),
+                label: const Text("Deactivate Account"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey[800],
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(45),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 40),
             const Divider(),
-
             ListTile(
               leading: const Icon(Icons.edit, color: Colors.orange),
               title: const Text("Edit Profile"),
               onTap: () {
-                // TODO: Navigate to edit screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EditCustomerProfileScreen(),
+                  ),
+                );
               },
             ),
             ListTile(
               leading: const Icon(Icons.info_outline, color: Colors.orange),
               title: const Text("About KFood App"),
               onTap: () {
-                // TODO: Show about dialog
+                showAboutDialog(
+                  context: context,
+                  applicationName: 'KFood App',
+                  applicationVersion: '1.0.0',
+                  applicationLegalese: '© 2025 KFood Inc.',
+                );
               },
             ),
-
             const Spacer(),
-
             ElevatedButton.icon(
               onPressed: _logout,
               icon: const Icon(Icons.logout),

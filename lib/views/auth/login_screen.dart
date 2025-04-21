@@ -13,7 +13,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
 
-  final String backendUrl = "http://192.168.8.163:30409/api/auth/login";
+  final String backendUrl = "http://192.168.150.48:5001/api/auth/login";
 
   Future<void> loginUser() async {
     setState(() => isLoading = true);
@@ -43,6 +43,9 @@ class _LoginScreenState extends State<LoginScreen> {
           "restaurantName",
           data["user"]["restaurantName"] ?? "Restaurant",
         );
+        // ✅ Save phone number and status
+        await prefs.setString("phone", data["user"]["phone"] ?? "");
+        await prefs.setString("status", data["user"]["status"] ?? "");
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

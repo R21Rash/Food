@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Import your screens
 import 'package:mobile_app_flutter/views/profile/CustomerProfileScreen.dart';
 import 'package:mobile_app_flutter/views/profile/DeliveryProfileScreen.dart';
 import 'package:mobile_app_flutter/views/profile/RestuarantProfileScreen.dart';
@@ -25,20 +26,26 @@ void main() async {
 
   final bool seenOnboarding = prefs.getBool('seenOnboarding') ?? false;
   final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  final String? role = prefs.getString("role");
 
   String initialRoute;
+
   if (!seenOnboarding) {
     initialRoute = AppRoutes.onboarding;
   } else if (isLoggedIn) {
-    final role = prefs.getString("role");
-    if (role == "Customer") {
-      initialRoute = AppRoutes.customerHome;
-    } else if (role == "Restaurant") {
-      initialRoute = AppRoutes.restaurantHome;
-    } else if (role == "Delivery") {
-      initialRoute = AppRoutes.deliveryHome;
-    } else {
-      initialRoute = AppRoutes.login;
+    switch (role) {
+      case "Customer":
+        initialRoute = AppRoutes.customerHome;
+        break;
+      case "Restaurant":
+        initialRoute = AppRoutes.restaurantHome;
+        break;
+      case "Delivery":
+        initialRoute = AppRoutes.deliveryHome;
+        break;
+      default:
+        initialRoute = AppRoutes.login;
+        break;
     }
   } else {
     initialRoute = AppRoutes.login;
@@ -76,7 +83,6 @@ class AppRoutes {
   static const String restaurantHome = '/restaurant_home';
   static const String deliveryHome = '/delivery_home';
   static const String trackOrder = '/track_order';
-
   static const String restaurantAdd = '/restaurant_add_screen';
   static const String restaurantList = '/restaurant_list_screen';
   static const String restaurantNotifications = '/restaurant_notifications';
@@ -118,5 +124,5 @@ class AppRoutes {
 Future<void> logoutUser(BuildContext context) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.clear();
-  Navigator.pushReplacementNamed(context, AppRoutes.login);
+  Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
 }
