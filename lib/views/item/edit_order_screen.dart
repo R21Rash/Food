@@ -125,6 +125,7 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
             onPressed: updateOrder,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
             child: const Text("Save Changes", style: TextStyle(fontSize: 16)),
