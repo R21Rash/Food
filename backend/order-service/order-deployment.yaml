@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: order-service
-          image: rashad123123/order-service:v1
+          image: rashad123123/order-service:v2
           ports:
             - containerPort: 5003
           env:
