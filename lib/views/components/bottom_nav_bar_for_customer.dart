@@ -38,9 +38,10 @@ class BottomNavBarForCustomer extends StatelessWidget {
         selectedFontSize: 0,
         unselectedFontSize: 0,
         items: [
-          _buildBarItem(Icons.home_rounded, 0),
-          _buildBarItem(Icons.track_changes, 1),
-          _buildBarItem(Icons.person_outline, 2),
+          _buildBarItem(Icons.home_rounded, 0), // Home
+          _buildBarItem(Icons.list_alt_rounded, 1), // Order List
+          _buildBarItem(Icons.track_changes, 2), // Track Order
+          _buildBarItem(Icons.person_outline, 3), // Profile
         ],
       ),
     );

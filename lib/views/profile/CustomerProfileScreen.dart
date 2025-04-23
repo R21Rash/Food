@@ -108,7 +108,14 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/customer_home');
           } else if (index == 1) {
+            Navigator.pushReplacementNamed(
+              context,
+              '/order_list',
+            ); // 👈 your order list screen
+          } else if (index == 2) {
             Navigator.pushReplacementNamed(context, '/track_order');
+          } else if (index == 3) {
+            Navigator.pushReplacementNamed(context, '/customer_profile');
           }
         },
       ),
