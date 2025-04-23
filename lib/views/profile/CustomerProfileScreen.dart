@@ -33,10 +33,31 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     });
   }
 
-  void _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Clear all shared preferences
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+  Future<void> _logout() async {
+    bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text("Confirm Logout"),
+            content: const Text("Are you sure you want to log out?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text("Cancel"),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text("Logout"),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear(); // Clear all shared preferences
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+    }
   }
 
   void _deactivateAccount() async {
@@ -175,23 +196,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 ),
               ],
             ),
-            if (status == "active") ...[
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: _deactivateAccount,
-                icon: const Icon(Icons.block),
-                label: const Text("Deactivate Account"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[800],
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(45),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.edit, color: Colors.orange),
@@ -218,19 +223,56 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               },
             ),
             const Spacer(),
-            ElevatedButton.icon(
-              onPressed: _logout,
-              icon: const Icon(Icons.logout),
-              label: const Text("Logout"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            if (status == "active")
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _deactivateAccount,
+                      icon: const Icon(Icons.block),
+                      label: const Text("Deactivate"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[800],
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _logout,
+                      icon: const Icon(Icons.logout),
+                      label: const Text("Logout"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            if (status != "active")
+              ElevatedButton.icon(
+                onPressed: _logout,
+                icon: const Icon(Icons.logout),
+                label: const Text("Logout"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

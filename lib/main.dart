@@ -13,6 +13,7 @@ import 'package:mobile_app_flutter/views/components/location_provider.dart';
 import 'package:mobile_app_flutter/views/trackorder/DeliveryTrackingScreen.dart';
 import 'package:mobile_app_flutter/views/trackorder/track_order_screen.dart';
 import 'package:mobile_app_flutter/views/auth/signup_screen.dart';
+import 'package:mobile_app_flutter/views/auth/forgot_password_screen.dart';
 import 'package:mobile_app_flutter/views/home/homecutomer_screen.dart';
 import 'package:mobile_app_flutter/views/splash_screen.dart';
 import 'package:mobile_app_flutter/views/onboarding/onboarding_screen.dart';
@@ -79,6 +80,7 @@ class AppRoutes {
   static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String signup = '/signup';
+  static const String forgotPassword = '/forgot_password';
   static const String customerHome = '/customer_home';
   static const String restaurantHome = '/restaurant_home';
   static const String deliveryHome = '/delivery_home';
@@ -96,6 +98,7 @@ class AppRoutes {
     onboarding: (context) => OnboardingScreen(),
     login: (context) => LoginScreen(),
     signup: (context) => SignupScreen(),
+    forgotPassword: (context) => ForgotPasswordScreen(),
     customerHome: (context) => HomeCustomerScreen(),
     restaurantHome: (context) => RestaurantHomeScreen(),
     deliveryHome: (context) => DeliveryHomeScreen(),

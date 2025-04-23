@@ -12,6 +12,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
+  bool isPasswordVisible = false; // Track password visibility
 
   final String backendUrl = "http://192.168.150.48:5001/api/auth/login";
 
@@ -43,7 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
           "restaurantName",
           data["user"]["restaurantName"] ?? "Restaurant",
         );
-        // ✅ Save phone number and status
         await prefs.setString("phone", data["user"]["phone"] ?? "");
         await prefs.setString("status", data["user"]["status"] ?? "");
 
@@ -104,7 +104,6 @@ class _LoginScreenState extends State<LoginScreen> {
           return Stack(
             children: [
               Container(height: 280, color: const Color(0xFF1E1E2D)),
-
               if (!isKeyboardOpen)
                 const Positioned(
                   top: 100,
@@ -128,7 +127,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-
               Align(
                 alignment: Alignment.bottomCenter,
                 child: AnimatedContainer(
@@ -165,7 +163,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             isPassword: true,
                             controller: passwordController,
                           ),
-                          const SizedBox(height: 20),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/forgot_password',
+                                );
+                              },
+                              child: const Text(
+                                "Forgot Password?",
+                                style: TextStyle(
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
                           isLoading
                               ? const Center(child: CircularProgressIndicator())
                               : SizedBox(
@@ -240,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 5),
         TextField(
           controller: controller,
-          obscureText: isPassword,
+          obscureText: isPassword ? !isPasswordVisible : false,
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
@@ -249,10 +265,24 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
             ),
-            suffixIcon: isPassword ? const Icon(Icons.visibility_off) : null,
+            suffixIcon:
+                isPassword
+                    ? IconButton(
+                      icon: Icon(
+                        isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isPasswordVisible = !isPasswordVisible;
+                        });
+                      },
+                    )
+                    : null,
           ),
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: 10),
       ],
     );
   }

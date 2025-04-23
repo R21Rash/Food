@@ -11,6 +11,7 @@ class RestuarantProfileScreen extends StatefulWidget {
 class _RestuarantProfileScreenState extends State<RestuarantProfileScreen> {
   String name = "Loading...";
   String email = "Loading...";
+  String phone = "Loading...";
   bool isOpen = true;
 
   @override
@@ -24,14 +25,9 @@ class _RestuarantProfileScreenState extends State<RestuarantProfileScreen> {
     setState(() {
       name = prefs.getString("name") ?? "Restaurant";
       email = prefs.getString("email") ?? "Not available";
+      phone = prefs.getString("phone") ?? "";
       isOpen = prefs.getBool("isOpen") ?? true; // Static toggle
     });
-  }
-
-  void _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
   }
 
   void toggleOpenStatus() async {
@@ -42,11 +38,38 @@ class _RestuarantProfileScreenState extends State<RestuarantProfileScreen> {
     });
   }
 
+  Future<void> _logout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text("Logout Confirmation"),
+            content: const Text("Are you sure you want to logout?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text("Cancel"),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text("Logout"),
+              ),
+            ],
+          ),
+    );
+
+    if (confirm == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-
       appBar: AppBar(
         centerTitle: true,
         title: const Text("Profile"),
@@ -73,6 +96,11 @@ class _RestuarantProfileScreenState extends State<RestuarantProfileScreen> {
             Text(
               name,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              phone,
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 8),
             Text(

@@ -11,10 +11,9 @@ class EditCustomerProfileScreen extends StatefulWidget {
 
 class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController nameController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController phoneController = TextEditingController();
-
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
   bool isLoading = false;
 
   @override
@@ -25,38 +24,31 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
 
   Future<void> loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      nameController.text = prefs.getString("name") ?? "";
-      emailController.text = prefs.getString("email") ?? "";
-      phoneController.text = prefs.getString("phone") ?? "";
-    });
+    nameController.text = prefs.getString("name") ?? "";
+    emailController.text = prefs.getString("email") ?? "";
+    phoneController.text = prefs.getString("phone") ?? "";
   }
 
   Future<void> updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      isLoading = true;
-    });
-
+    setState(() => isLoading = true);
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString("user_id");
 
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("User ID not found. Please login again.")),
-      );
+      showSnack("User ID not found. Please login again.", isError: true);
       return;
     }
 
     final url = Uri.parse("http://192.168.150.48:5001/api/auth/updateProfile");
 
     try {
-      final response = await http.post(
+      final response = await http.put(
         url,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
-          "userId": userId, // use _id to identify the user
+          "userId": userId,
           "newName": nameController.text.trim(),
           "newEmail": emailController.text.trim(),
           "newPhone": phoneController.text.trim(),
@@ -70,93 +62,110 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
         await prefs.setString("email", emailController.text.trim());
         await prefs.setString("phone", phoneController.text.trim());
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profile updated successfully!")),
-        );
-
+        showSnack("Profile updated successfully!");
         Navigator.pop(context);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed: ${result['message'] ?? 'Unknown error'}"),
-          ),
-        );
+        showSnack(result['message'] ?? "Update failed", isError: true);
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      showSnack("Error: $e", isError: true);
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
+  }
+
+  void showSnack(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.redAccent : Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text("Edit Profile"),
         centerTitle: true,
         backgroundColor: Colors.orange,
+        elevation: 1,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
               const SizedBox(height: 20),
-              TextFormField(
+              const Icon(Icons.account_circle, size: 100, color: Colors.orange),
+              const SizedBox(height: 30),
+
+              buildTextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: "Full Name",
-                  border: OutlineInputBorder(),
-                ),
+                label: "Full Name",
+                icon: Icons.person,
                 validator:
                     (value) =>
                         value == null || value.isEmpty
                             ? "Enter your name"
                             : null,
               ),
+
               const SizedBox(height: 20),
-              TextFormField(
+              buildTextField(
                 controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                ),
+                label: "Email",
+                icon: Icons.email,
+                keyboardType: TextInputType.emailAddress,
                 validator:
                     (value) =>
                         value == null || !value.contains("@")
-                            ? "Enter valid email"
+                            ? "Enter a valid email"
                             : null,
               ),
+
               const SizedBox(height: 20),
-              TextFormField(
+              buildTextField(
                 controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: "Phone Number",
-                  border: OutlineInputBorder(),
-                ),
+                label: "Phone Number",
+                icon: Icons.phone,
+                keyboardType: TextInputType.phone,
                 validator:
                     (value) =>
                         value == null || value.length < 9
                             ? "Enter valid phone number"
                             : null,
               ),
-              const SizedBox(height: 30),
+
+              const SizedBox(height: 40),
               ElevatedButton.icon(
-                icon: const Icon(Icons.save),
-                label: Text(isLoading ? "Saving..." : "Save Changes"),
+                icon:
+                    isLoading
+                        ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                        : const Icon(Icons.save),
+                label: Text(
+                  isLoading ? "Saving..." : "Save Changes",
+                  style: const TextStyle(fontSize: 16),
+                ),
                 onPressed: isLoading ? null : updateProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(50),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
@@ -164,6 +173,27 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      keyboardType: keyboardType,
+      validator: validator,
     );
   }
 }
