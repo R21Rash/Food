@@ -16,10 +16,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final String backendUrl = "http://192.168.8.163:30409/api/auth/login";
 
   Future<void> loginUser() async {
-    print("🚀 loginUser() called");
+    print("loginUser() called");
 
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      print("❗ Email or password is empty");
+      print(" Email or password is empty");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please enter both email and password."),
