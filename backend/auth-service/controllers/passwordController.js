@@ -19,7 +19,7 @@ export const requestPasswordReset = async (req, res) => {
   } catch (err) {
     console.error("Error sending reset link:", err);
     res.status(500).json({ message: "Server error" });
-  }
+  } 
 };
 
 export const resetPassword = async (req, res) => {
