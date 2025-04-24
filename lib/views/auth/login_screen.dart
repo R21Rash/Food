@@ -17,7 +17,26 @@ class _LoginScreenState extends State<LoginScreen> {
   final String backendUrl = "http://192.168.150.48:5001/api/auth/login";
 
   Future<void> loginUser() async {
+    print("loginUser() called");
+
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      print(" Email or password is empty");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter both email and password."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => isLoading = true);
+
+    print("📡 Sending login request to $backendUrl");
+    print(
+      "📤 Request Body: ${emailController.text} / ${passwordController.text}",
+    );
+
     try {
       final response = await http.post(
         Uri.parse(backendUrl),
@@ -27,6 +46,9 @@ class _LoginScreenState extends State<LoginScreen> {
           "password": passwordController.text,
         }),
       );
+
+      print("📨 Response Code: ${response.statusCode}");
+      print("📨 Response Body: ${response.body}");
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data["user"] != null) {
@@ -47,6 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString("phone", data["user"]["phone"] ?? "");
         await prefs.setString("status", data["user"]["status"] ?? "");
 
+        print("✅ Login success! Redirecting user with role: $role");
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Login Successful!"),
@@ -65,6 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.pushReplacementNamed(context, '/delivery_home');
             break;
           default:
+            print("❌ Unknown user role");
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Unknown user role"),
@@ -73,6 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
         }
       } else {
+        print("❌ Login failed: ${data["message"]}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data["message"] ?? "Login failed"),
@@ -81,6 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
+      print("❌ Connection Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Connection Error: $e"),
@@ -197,7 +224,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
-                                  onPressed: loginUser,
+                                  onPressed: () {
+                                    print("🟠 LOGIN BUTTON PRESSED");
+                                    loginUser();
+                                  },
                                   child: const Text(
                                     "LOG IN",
                                     style: TextStyle(fontSize: 16),

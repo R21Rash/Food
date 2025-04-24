@@ -5,6 +5,7 @@ import 'package:mobile_app_flutter/views/components/bottom_nav_bar_for_customer.
 import 'package:mobile_app_flutter/views/components/cart_button.dart';
 import 'package:mobile_app_flutter/views/components/cart_modal.dart';
 import 'package:mobile_app_flutter/views/item/customerItem_screen.dart';
+import 'package:mobile_app_flutter/views/item/restaurant_details_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeCustomerScreen extends StatefulWidget {
@@ -189,10 +190,16 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
       bottomNavigationBar: BottomNavBarForCustomer(
         currentIndex: 0, // Home is index 0
         onTap: (index) {
-          if (index == 0) return;
-          if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/track_order');
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, '/customer_home');
+          } else if (index == 1) {
+            Navigator.pushReplacementNamed(
+              context,
+              '/order_list',
+            ); // 👈 your order list screen
           } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/track_order');
+          } else if (index == 3) {
             Navigator.pushReplacementNamed(context, '/customer_profile');
           }
         },
@@ -313,51 +320,65 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
                 fit: BoxFit.cover,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => RestaurantDetailsScreen(restaurantName: name),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    desc,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.orange, size: 18),
-                      const Text(
-                        " 4.7",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                    const SizedBox(height: 5),
+                    Text(
+                      desc,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.orange, size: 18),
+                        const Text(
+                          " 4.7",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Icon(
-                        Icons.delivery_dining,
-                        color: Colors.orange,
-                        size: 18,
-                      ),
-                      Text(" $delivery", style: const TextStyle(fontSize: 14)),
-                      const SizedBox(width: 10),
-                      const Icon(
-                        Icons.access_time,
-                        color: Colors.orange,
-                        size: 18,
-                      ),
-                      Text(" $time", style: const TextStyle(fontSize: 14)),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 10),
+                        const Icon(
+                          Icons.delivery_dining,
+                          color: Colors.orange,
+                          size: 18,
+                        ),
+                        Text(
+                          " $delivery",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(width: 10),
+                        const Icon(
+                          Icons.access_time,
+                          color: Colors.orange,
+                          size: 18,
+                        ),
+                        Text(" $time", style: const TextStyle(fontSize: 14)),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

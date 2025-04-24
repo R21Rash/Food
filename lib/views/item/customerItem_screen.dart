@@ -23,7 +23,19 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
     fetchProducts();
   }
 
+  String? selectedSize;
   void addToCart() {
+    if (selectedSize == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please select a size."),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       cartItems.add({
         "title": widget.product['name'],
@@ -31,14 +43,15 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
         "price": widget.product['price'].toString(),
         "quantity": 1,
         "restaurantName": widget.product['restaurantName'],
+        "size": selectedSize,
       });
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("${widget.product['name']} added to cart!"),
-        duration: Duration(seconds: 2),
         backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -262,10 +275,25 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
   }
 
   Widget _sizeOption(String size) {
-    return Chip(
-      label: Text(size, style: TextStyle(fontWeight: FontWeight.bold)),
+    final isSelected = selectedSize == size;
+
+    return ChoiceChip(
+      label: Text(
+        size,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: isSelected ? Colors.white : Colors.orange,
+        ),
+      ),
+      selected: isSelected,
+      selectedColor: Colors.orange,
       backgroundColor: Colors.white,
       shape: StadiumBorder(side: BorderSide(color: Colors.orange)),
+      onSelected: (_) {
+        setState(() {
+          selectedSize = size;
+        });
+      },
     );
   }
 
