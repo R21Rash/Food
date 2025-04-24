@@ -116,7 +116,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       return;
     }
 
-    final url = Uri.parse("http://192.168.150.48:5001/api/auth/deactivate");
+    final url = Uri.parse("http://192.168.8.163:30409/api/auth/deactivate");
 
     try {
       final response = await http.post(
