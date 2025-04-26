@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:mobile_app_flutter/views/components/bottom_nav_bar_for_customer.dart';
 import 'package:mobile_app_flutter/views/item/edit_order_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,7 +36,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
     if (userId == null) return;
 
     final response = await http.get(
-      Uri.parse("http://192.168.8.163:32189/api/orders/by-user/$userId"),
+      Uri.parse("$baseURL:32189/api/orders/by-user/$userId"),
     );
 
     if (response.statusCode == 200) {

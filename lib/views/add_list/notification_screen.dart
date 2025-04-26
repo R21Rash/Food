@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile_app_flutter/views/components/bottom_nav_bar.dart';
 
@@ -29,9 +30,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final encodedName = Uri.encodeComponent(storedName);
 
     final response = await http.get(
-      Uri.parse(
-        'http://192.168.8.163:32189/api/orders/by-restaurant/$encodedName',
-      ),
+      Uri.parse('$baseURL:32189/api/orders/by-restaurant/$encodedName'),
     );
 
     if (response.statusCode == 200) {
@@ -56,7 +55,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
     final response = await http.put(
-      Uri.parse('http://192.168.8.163:32189/api/orders/update/$orderId'),
+      Uri.parse('$baseURL:32189/api/orders/update/$orderId'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"orderStatus": newStatus}),
     );
