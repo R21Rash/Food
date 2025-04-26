@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
@@ -14,11 +15,29 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+    checkLoginStatus();
+  }
 
-    // Initialize fade animation
+  Future<void> checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('name');
+
+    if (name != null && name.isNotEmpty) {
+      // User already logged in, go to home
+      Navigator.pushReplacementNamed(context, '/customer_home');
+    } else {
+      // No user data, proceed with splash + onboarding
+      startSplashAnimation();
+      Timer(Duration(seconds: 3), () {
+        Navigator.pushReplacementNamed(context, '/onboarding');
+      });
+    }
+  }
+
+  void startSplashAnimation() {
     _fadeController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 2), // Fade in duration
+      duration: Duration(seconds: 2),
     );
 
     _fadeAnimation = CurvedAnimation(
@@ -26,14 +45,8 @@ class _SplashScreenState extends State<SplashScreen>
       curve: Curves.easeIn,
     );
 
-    // Start the fade animation after a delay
     Future.delayed(Duration(milliseconds: 800), () {
       _fadeController.forward();
-    });
-
-    //  Navigate to Onboarding after 3 seconds
-    Timer(Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/onboarding');
     });
   }
 
@@ -49,39 +62,23 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          ///  **Top Left Decoration (Animated Fade-In)**
           Positioned(
             top: 0,
             left: 0,
             child: FadeTransition(
               opacity: _fadeAnimation,
-              child: Image.asset(
-                'assets/images/BottomLeft.png', // Update with your correct path
-                width: 120, // Adjust size as needed
-              ),
+              child: Image.asset('assets/images/BottomLeft.png', width: 120),
             ),
           ),
-
-          ///  **Bottom Right Decoration (Animated Fade-In)**
           Positioned(
             bottom: 0,
             right: 0,
             child: FadeTransition(
               opacity: _fadeAnimation,
-              child: Image.asset(
-                'assets/images/BottomRight.png', // Update with your correct path
-                width: 150, // Adjust size as needed
-              ),
+              child: Image.asset('assets/images/BottomRight.png', width: 150),
             ),
           ),
-
-          ///  **Logo at Center**
-          Center(
-            child: Image.asset(
-              'assets/images/Logo.png', // logo
-              width: 150,
-            ),
-          ),
+          Center(child: Image.asset('assets/images/Logo.png', width: 150)),
         ],
       ),
     );
