@@ -106,7 +106,7 @@ class AppRoutes {
     onboarding: (context) => OnboardingScreen(),
     login: (context) => LoginScreen(),
     signup: (context) => SignupScreen(),
-    forgotPassword: (context) => ForgotPasswordScreen(),
+    forgotPassword: (context) => ForgotResetPasswordScreen(),
     customerHome: (context) => HomeCustomerScreen(),
     restaurantHome: (context) => RestaurantHomeScreen(),
     deliveryHome: (context) => DeliveryHomeScreen(),
@@ -118,10 +118,11 @@ class AppRoutes {
     customerProfile: (context) => CustomerProfileScreen(),
     restaurantProfile: (context) => RestuarantProfileScreen(),
     customerOrders: (context) => const OrderListScreen(),
-    testLocation: (context) => Scaffold(
-      appBar: AppBar(title: const Text("Test Location Widget")),
-      body: const LocationWidget(),
-    ),
+    testLocation:
+        (context) => Scaffold(
+          appBar: AppBar(title: const Text("Test Location Widget")),
+          body: const LocationWidget(),
+        ),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -138,7 +139,8 @@ class AppRoutes {
       final restaurantName = settings.arguments as String?;
       if (restaurantName != null) {
         return MaterialPageRoute(
-          builder: (_) => RestaurantDetailsScreen(restaurantName: restaurantName),
+          builder:
+              (_) => RestaurantDetailsScreen(restaurantName: restaurantName),
         );
       }
     }

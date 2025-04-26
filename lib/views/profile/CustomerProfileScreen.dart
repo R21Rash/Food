@@ -116,7 +116,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       return;
     }
 
-    final url = Uri.parse("http://192.168.8.163:30409/api/auth/deactivate");
+    // final url = Uri.parse("http://192.168.8.163:30409/api/auth/deactivate");
+    final url = Uri.parse("http://192.168.180.48:5001/api/auth/deactivate");
 
     try {
       final response = await http.post(
@@ -277,15 +278,12 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
         ),
       ),
       bottomNavigationBar: BottomNavBarForCustomer(
-        currentIndex: 2,
+        currentIndex: 3,
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/customer_home');
           } else if (index == 1) {
-            Navigator.pushReplacementNamed(
-              context,
-              '/order_list',
-            ); // 👈 your order list screen
+            Navigator.pushReplacementNamed(context, '/order_list');
           } else if (index == 2) {
             Navigator.pushReplacementNamed(context, '/track_order');
           } else if (index == 3) {

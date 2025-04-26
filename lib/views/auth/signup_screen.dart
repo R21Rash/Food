@@ -19,9 +19,12 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController(
+    text: "+94",
+  );
 
-  final String backendUrl = "http://192.168.8.163:30409/api/auth/signup";
+  final String backendUrl = "http://192.168.180.48:5001/api/auth/signup";
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +38,6 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               Container(height: 280, color: const Color(0xFF1E1E2D)),
 
-              // ✅ Only show welcome message when keyboard is not open
               if (!isKeyboardOpen)
                 const Positioned(
                   top: 100,
@@ -60,7 +62,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
 
-              // ✅ White animated sliding container
               Align(
                 alignment: Alignment.bottomCenter,
                 child: AnimatedContainer(
@@ -68,7 +69,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   height:
                       isKeyboardOpen
                           ? constraints.maxHeight
-                          : constraints.maxHeight * 0.75,
+                          : constraints.maxHeight * 0.85,
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
@@ -83,137 +84,205 @@ class _SignupScreenState extends State<SignupScreen> {
                       padding: EdgeInsets.only(
                         bottom: MediaQuery.of(context).viewInsets.bottom,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "ROLE",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "SELECT YOUR ROLE",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 5),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: DropdownButtonFormField<String>(
-                              value: selectedRole,
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                              ),
-                              hint: const Text(
-                                "Choose your role",
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                              icon: const Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                              ),
-                              items:
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children:
                                   roles.map((role) {
-                                    return DropdownMenuItem(
-                                      value: role,
-                                      child: Text(
-                                        role,
-                                        style: const TextStyle(fontSize: 16),
+                                    return Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                selectedRole == role
+                                                    ? Colors.orange
+                                                    : Colors.grey[200],
+                                            foregroundColor:
+                                                selectedRole == role
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          onPressed:
+                                              () => setState(
+                                                () => selectedRole = role,
+                                              ),
+                                          child: Text(role),
+                                        ),
                                       ),
                                     );
                                   }).toList(),
-                              onChanged:
-                                  (value) =>
-                                      setState(() => selectedRole = value),
                             ),
-                          ),
-                          const SizedBox(height: 15),
-                          if (selectedRole == "Restaurant")
-                            buildTextField(
-                              "Restaurant Name",
-                              "Enter restaurant name",
-                              controller: restaurantNameController,
-                            )
-                          else
-                            buildTextField(
-                              "Full Name",
-                              "Enter full name",
-                              controller: fullNameController,
-                            ),
-                          buildTextField(
-                            "Email",
-                            "example@gmail.com",
-                            controller: emailController,
-                          ),
-                          buildTextField(
-                            "Phone Number",
-                            "Enter your phone number",
-                            controller: phoneController,
-                          ),
-                          buildTextField(
-                            "Password",
-                            "********",
-                            isPassword: true,
-                            controller: passwordController,
-                          ),
-                          buildTextField(
-                            "Confirm Password",
-                            "********",
-                            isPassword: true,
-                            controller: confirmPasswordController,
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 15,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                            const SizedBox(height: 20),
+
+                            if (selectedRole == "Restaurant")
+                              buildTextField(
+                                "Restaurant Name",
+                                "Enter restaurant name",
+                                controller: restaurantNameController,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter restaurant name';
+                                  }
+                                  return null;
+                                },
+                              )
+                            else if (selectedRole != null)
+                              buildTextField(
+                                selectedRole == "Customer"
+                                    ? "Full Name"
+                                    : "Driver Name",
+                                "Enter your full name",
+                                controller: fullNameController,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your name';
+                                  }
+                                  return null;
+                                },
                               ),
-                              onPressed: registerUser,
-                              child: const Text(
-                                "SIGN UP",
-                                style: TextStyle(fontSize: 16),
-                              ),
+
+                            buildTextField(
+                              "Email",
+                              "example@gmail.com",
+                              controller: emailController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your email';
+                                }
+                                if (!RegExp(
+                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                ).hasMatch(value)) {
+                                  return 'Please enter a valid email';
+                                }
+                                return null;
+                              },
                             ),
-                          ),
-                          const SizedBox(height: 15),
-                          Center(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text("Already have an account? "),
-                                TextButton(
-                                  onPressed:
-                                      () => Navigator.pushNamed(
-                                        context,
-                                        '/login',
-                                      ),
-                                  child: const Text(
-                                    "LOG IN",
-                                    style: TextStyle(
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+
+                            buildTextField(
+                              "Phone Number",
+                              "771234567",
+                              controller: phoneController,
+                              keyboardType: TextInputType.phone,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter phone number';
+                                }
+                                if (!RegExp(
+                                  r'^\+94[0-9]{9}$',
+                                ).hasMatch(value)) {
+                                  return 'Enter valid Sri Lankan number (e.g. +94771234567)';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            buildTextField(
+                              "Password",
+                              "********",
+                              isPassword: true,
+                              controller: passwordController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter password';
+                                }
+                                if (value.length < 8) {
+                                  return 'Password must be at least 8 characters';
+                                }
+                                if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                                  return 'Include at least one uppercase letter';
+                                }
+                                if (!RegExp(r'[0-9]').hasMatch(value)) {
+                                  return 'Include at least one number';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            buildTextField(
+                              "Confirm Password",
+                              "********",
+                              isPassword: true,
+                              controller: confirmPasswordController,
+                              validator: (value) {
+                                if (value != passwordController.text) {
+                                  return 'Passwords do not match';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                              ],
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    registerUser();
+                                  }
+                                },
+                                child: const Text(
+                                  "SIGN UP",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 15),
+                            Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text("Already have an account? "),
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          '/login',
+                                        ),
+                                    child: const Text(
+                                      "LOG IN",
+                                      style: TextStyle(
+                                        color: Colors.orange,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -231,7 +300,10 @@ class _SignupScreenState extends State<SignupScreen> {
     String hint, {
     bool isPassword = false,
     TextEditingController? controller,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
   }) {
+    bool obscureText = isPassword;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -240,9 +312,11 @@ class _SignupScreenState extends State<SignupScreen> {
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 5),
-        TextField(
-          obscureText: isPassword,
+        TextFormField(
+          obscureText: obscureText,
           controller: controller,
+          keyboardType: keyboardType,
+          validator: validator,
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
@@ -251,7 +325,19 @@ class _SignupScreenState extends State<SignupScreen> {
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
             ),
-            suffixIcon: isPassword ? const Icon(Icons.visibility_off) : null,
+            suffixIcon:
+                isPassword
+                    ? IconButton(
+                      icon: Icon(
+                        obscureText ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          obscureText = !obscureText;
+                        });
+                      },
+                    )
+                    : null,
           ),
         ),
         const SizedBox(height: 15),
