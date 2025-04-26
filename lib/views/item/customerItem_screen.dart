@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:mobile_app_flutter/views/components/cart_button.dart';
 import 'package:mobile_app_flutter/views/components/cart_modal.dart';
 
@@ -44,7 +45,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
   }
 
   Future<void> fetchProducts() async {
-    const String apiUrl = "http://192.168.8.163:31201/api/products/all";
+    const String apiUrl = "$baseURL:31201/api/products/all";
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {

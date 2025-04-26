@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:mobile_app_flutter/views/components/location_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,7 +52,7 @@ class PaymentSuccessScreen extends StatelessWidget {
     print(json.encode(order));
 
     final response = await http.post(
-      Uri.parse("http://192.168.8.163:32189/api/orders/create"),
+      Uri.parse("$baseURL:32189/api/orders/create"),
       headers: {"Content-Type": "application/json"},
       body: json.encode(order),
     );
