@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:mobile_app_flutter/views/components/bottom_nav_bar.dart';
 import 'package:mobile_app_flutter/views/components/location_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,8 +64,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('restaurantName') ?? '';
     final encodedName = Uri.encodeComponent(name);
-    final url =
-        "http://192.168.150.48:5003/api/orders/by-restaurant/$encodedName";
+    final url = "$baseURL:32189/api/orders/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -107,8 +107,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('restaurantName') ?? '';
     final encodedName = Uri.encodeComponent(name);
-    final url =
-        "http://192.168.150.48:5003/api/orders/by-restaurant/$encodedName";
+    final url = "$baseURL:32189/api/orders/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -148,8 +147,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('restaurantName') ?? '';
     final encodedName = Uri.encodeComponent(name);
-    final url =
-        "http://192.168.150.48:5003/api/products/by-restaurant/$encodedName";
+    final url = "$baseURL:31201/api/products/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));

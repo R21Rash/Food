@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 
 class DeliveryTrackingScreen extends StatefulWidget {
   final Map<String, dynamic> order;
@@ -37,7 +38,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   }
 
   Future<void> updateOrderStatus(String newStatus) async {
-    final url = 'http://192.168.8.218:5003/api/orders/update/$orderId';
+    final url = '$baseURL:32189/api/orders/update/$orderId';
     final response = await http.put(
       Uri.parse(url),
       headers: {"Content-Type": "application/json"},
