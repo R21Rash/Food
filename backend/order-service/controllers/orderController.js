@@ -99,7 +99,7 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // ✅ Send delivery email if delivered
+    //  Send delivery email if delivered
     if (newStatus === "Delivered") {
       await sendDeliveryEmail(updatedOrder);
     }
@@ -113,7 +113,7 @@ export const updateOrderStatus = async (req, res) => {
   }
 };
 
-// ✅ NEW: Fetch orders that are "Preparing" (for delivery)
+//Fetch orders that are "Preparing" (for delivery)
 export const fetchPendingDeliveries = async (req, res) => {
   try {
     const orders = await Order.find({ orderStatus: "Preparing" });
@@ -128,7 +128,7 @@ export const fetchOrdersByUserId = async (req, res) => {
   try {
     const orders = await Order.find({
       userId,
-      isCompleted: false, // ✅ Exclude completed
+      isCompleted: false, //  Exclude completed
     }).sort({ createdAt: -1 });
     res.status(200).json(orders);
   } catch (error) {
@@ -155,5 +155,46 @@ export const markOrderAsCompletedByUser = async (req, res) => {
       .json({ message: "Order marked as completed", order: updatedOrder });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+// ✅ Update order by user (only size or delivery location allowed)
+export const updateOrderByUser = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { items, deliveryLocation } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.orderStatus !== "Order Received") {
+      return res.status(400).json({ message: "Order cannot be edited" });
+    }
+
+    if (items) order.items = items;
+    if (deliveryLocation) order.deliveryLocation = deliveryLocation;
+
+    await order.save();
+    res.status(200).json({ message: "Order updated", order });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ❌ Cancel order by user
+export const cancelOrderByUser = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.orderStatus !== "Order Received") {
+      return res.status(400).json({ message: "Cannot cancel processed order" });
+    }
+
+    await order.deleteOne();
+    res.status(200).json({ message: "Order canceled" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

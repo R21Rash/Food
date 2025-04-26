@@ -189,10 +189,16 @@ class _HomeCustomerScreenState extends State<HomeCustomerScreen> {
       bottomNavigationBar: BottomNavBarForCustomer(
         currentIndex: 0, // Home is index 0
         onTap: (index) {
-          if (index == 0) return;
-          if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/track_order');
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, '/customer_home');
+          } else if (index == 1) {
+            Navigator.pushReplacementNamed(
+              context,
+              '/order_list',
+            ); // 👈 your order list screen
           } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/track_order');
+          } else if (index == 3) {
             Navigator.pushReplacementNamed(context, '/customer_profile');
           }
         },

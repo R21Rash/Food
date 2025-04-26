@@ -6,6 +6,8 @@ import {
   fetchPendingDeliveries,
   fetchOrdersByUserId,
   markOrderAsCompletedByUser,
+  updateOrderByUser,
+  cancelOrderByUser,
 } from "../controllers/orderController.js";
 
 const router = express.Router();
@@ -16,4 +18,6 @@ router.put("/update/:id", updateOrderStatus);
 router.get("/pending-delivery", fetchPendingDeliveries);
 router.get("/by-user/:userId", fetchOrdersByUserId);
 router.put("/mark-complete/:id", markOrderAsCompletedByUser);
+router.put("/edit/:id", updateOrderByUser);
+router.delete("/cancel/:id", cancelOrderByUser);
 export default router;

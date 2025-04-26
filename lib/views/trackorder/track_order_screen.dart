@@ -176,17 +176,17 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                 )
                 : Column(
                   children: [
-                    Text(
-                      _eta.inSeconds > 0 ? _formatDuration(_eta) : "Soon",
-                      style: const TextStyle(
+                    const Text(
+                      "20 mins",
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
-                      "ESTIMATED DELIVERY TIME",
-                      style: TextStyle(color: Colors.grey[600]),
+                      "Estimated Delivery Time",
+                      style: TextStyle(color: Colors.grey),
                     ),
                     const SizedBox(height: 20),
                     if (latestOrder != null)
@@ -275,7 +275,11 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/customer_home');
+          } else if (index == 1) {
+            Navigator.pushReplacementNamed(context, '/order_list');
           } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/track_order');
+          } else if (index == 3) {
             Navigator.pushReplacementNamed(context, '/customer_profile');
           }
         },
