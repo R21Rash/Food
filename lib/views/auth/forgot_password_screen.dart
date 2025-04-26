@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
+
 class ForgotResetPasswordScreen extends StatefulWidget {
   @override
   _ForgotResetPasswordScreenState createState() =>
@@ -24,7 +26,7 @@ class _ForgotResetPasswordScreenState extends State<ForgotResetPasswordScreen> {
   bool isNewPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
 
-  final String baseUrl = "http://192.168.180.48:5001/api/password";
+  final String baseUrl = "$baseURL:30409/api/password";
 
   Future<void> sendOtp() async {
     if (emailController.text.isEmpty) {

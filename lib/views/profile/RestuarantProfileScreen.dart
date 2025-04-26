@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -101,7 +102,7 @@ class _RestuarantProfileScreenState extends State<RestuarantProfileScreen> {
       return;
     }
 
-    final url = Uri.parse("http://192.168.180.48:5001/api/auth/deactivate");
+    final url = Uri.parse("$baseURL:30409/api/auth/deactivate");
 
     try {
       final response = await http.post(

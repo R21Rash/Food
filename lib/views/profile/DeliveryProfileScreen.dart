@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile_app_flutter/views/components/CustomBottomNavBarForDriver.dart';
 import 'package:mobile_app_flutter/views/profile/edit_customer_profile_screen.dart';
@@ -98,20 +102,36 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
       return;
     }
 
+    final url = Uri.parse("$baseURL:30409/api/auth/deactivate");
+
     try {
       // Call your deactivation API here
       // final response = await http.post(...);
 
       // On success:
-      await prefs.setString("status", "inactive");
-      setState(() => status = "inactive");
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Account deactivated successfully")),
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
       );
 
-      await prefs.clear();
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+      if (response.statusCode == 200) {
+        await prefs.setString("status", "inactive");
+        setState(() => status = "inactive");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Account deactivated successfully")),
+        );
+
+        // Clear shared preferences and log the user out
+        await prefs.clear();
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+      } else {
+        final body = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed: ${body['message'] ?? 'Try again'}")),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(
         context,

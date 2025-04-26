@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'dart:convert';
 import 'package:mobile_app_flutter/views/auth/signup_success.dart';
 
@@ -23,7 +24,7 @@ class _SignupScreenState extends State<SignupScreen> {
     text: "+94",
   );
 
-  final String backendUrl = "http://192.168.180.48:5001/api/auth/signup";
+  final String backendUrl = "$baseURL:30409/api/auth/signup";
   final _formKey = GlobalKey<FormState>();
 
   @override
