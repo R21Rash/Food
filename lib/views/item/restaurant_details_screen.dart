@@ -5,6 +5,7 @@ import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:mobile_app_flutter/views/components/bottom_nav_bar_for_customer.dart';
 import 'package:mobile_app_flutter/views/item/customerItem_screen.dart';
 
+// Screen to display details of a selected restaurant and its products (menu items)
 class RestaurantDetailsScreen extends StatefulWidget {
   final String restaurantName;
 
@@ -17,15 +18,16 @@ class RestaurantDetailsScreen extends StatefulWidget {
 }
 
 class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
-  List<Map<String, dynamic>> products = [];
-  bool isLoading = true;
+  List<Map<String, dynamic>> products = []; // List to hold restaurant products
+  bool isLoading = true; // Loading state
 
   @override
   void initState() {
     super.initState();
-    fetchRestaurantProducts();
+    fetchRestaurantProducts(); // Fetch products when the screen loads
   }
 
+  // Function to fetch products of a restaurant from the backend
   Future<void> fetchRestaurantProducts() async {
     final url =
         "$baseURL:31201/api/products/by-restaurant/${Uri.encodeComponent(widget.restaurantName)}";
@@ -49,24 +51,32 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get first product to use its image as the restaurant image
     final restaurant = products.isNotEmpty ? products[0] : null;
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(widget.restaurantName),
+        title: Text(widget.restaurantName), // Set restaurant name as title
         backgroundColor: Colors.orange,
-        leading: BackButton(onPressed: () => Navigator.pop(context)),
+        leading: BackButton(
+          onPressed: () => Navigator.pop(context),
+        ), // Back button
       ),
       body:
           isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                child: CircularProgressIndicator(),
+              ) // Show loader while fetching data
               : products.isEmpty
-              ? const Center(child: Text("No products found"))
+              ? const Center(
+                child: Text("No products found"),
+              ) // Show if no products
               : SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Show restaurant's main image if available
                     if (restaurant != null &&
                         restaurant['images'] != null &&
                         restaurant['images'].isNotEmpty)
@@ -83,6 +93,8 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                         ),
                       ),
                     const SizedBox(height: 20),
+
+                    // Menu title
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text(
@@ -94,16 +106,19 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
+
+                    // List of menu items
                     ListView.builder(
                       itemCount: products.length,
                       shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
+                      physics:
+                          const NeverScrollableScrollPhysics(), // Disable scroll inside list
                       itemBuilder: (context, index) {
                         final item = products[index];
                         final img =
                             item['images']?.isNotEmpty == true
                                 ? item['images'][0]
-                                : 'https://via.placeholder.com/300';
+                                : 'https://via.placeholder.com/300'; // Placeholder image
                         return ListTile(
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
@@ -121,6 +136,7 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                             size: 14,
                           ),
                           onTap: () {
+                            // Navigate to item details screen
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -136,8 +152,9 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
                   ],
                 ),
               ),
+      // Bottom navigation bar
       bottomNavigationBar: BottomNavBarForCustomer(
-        currentIndex: 0,
+        currentIndex: 0, // Current index (Home)
         onTap: (index) {
           if (index == 1) {
             Navigator.pushReplacementNamed(context, '/track_order');
