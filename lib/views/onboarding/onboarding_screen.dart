@@ -7,10 +7,11 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  int _currentPage = 0;
+  int _currentPage = 0; // Track current onboarding page
   final PageController _pageController = PageController();
 
-  List<Map<String, String>> onboardingData = [
+  // List of onboarding screens data
+  final List<Map<String, String>> onboardingData = [
     {
       "title": "All your favorites",
       "description":
@@ -31,6 +32,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
   ];
 
+  // Mark onboarding as completed and navigate to login screen
   Future<void> completeOnboarding() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool("hasSeenOnboarding", true);
@@ -41,145 +43,157 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Expanded(
-            flex: 3,
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-              },
-              itemCount: onboardingData.length,
-              itemBuilder:
-                  (context, index) => OnboardingContent(
-                    title: onboardingData[index]["title"]!,
-                    description: onboardingData[index]["description"]!,
-                    image: onboardingData[index]["image"]!,
-                  ),
+      body: SafeArea(
+        // SafeArea to avoid notches
+        child: Column(
+          children: [
+            Expanded(
+              flex: 3,
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                itemCount: onboardingData.length,
+                itemBuilder:
+                    (context, index) => OnboardingContent(
+                      title: onboardingData[index]["title"]!,
+                      description: onboardingData[index]["description"]!,
+                      image: onboardingData[index]["image"]!,
+                    ),
+              ),
             ),
-          ),
 
-          Expanded(
-            flex: 1,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    onboardingData.length,
-                    (index) => buildDot(index),
-                  ),
-                ),
-                const SizedBox(height: 60),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 15),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Dot indicators for pages
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        onboardingData.length,
+                        (index) => buildDot(index: index),
                       ),
-                      onPressed: () {
-                        if (_currentPage == onboardingData.length - 1) {
-                          completeOnboarding(); // ✅ Set flag and go to login
-                        } else {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.ease,
-                          );
-                        }
-                      },
-                      child: Text(
-                        _currentPage == onboardingData.length - 1
-                            ? "Get Started"
-                            : "Next",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.normal,
+                    ),
+
+                    // Button to move to next page or complete onboarding
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        onPressed: () {
+                          if (_currentPage == onboardingData.length - 1) {
+                            completeOnboarding();
+                          } else {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        child: Text(
+                          _currentPage == onboardingData.length - 1
+                              ? "Get Started"
+                              : "Next",
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 10),
-
-                TextButton(
-                  onPressed: completeOnboarding, // ✅ Set flag on skip
-                  child: const Text(
-                    "Skip",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.normal,
+                    // Skip button
+                    TextButton(
+                      onPressed: completeOnboarding,
+                      child: const Text(
+                        "Skip",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget buildDot(int index) {
-    return Container(
-      margin: const EdgeInsets.only(right: 5),
+  // Build the animated dot indicator
+  Widget buildDot({required int index}) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.symmetric(horizontal: 5),
       height: 8,
-      width: _currentPage == index ? 16 : 8,
+      width: _currentPage == index ? 20 : 8,
       decoration: BoxDecoration(
-        color: _currentPage == index ? Colors.orange : Colors.grey,
+        color: _currentPage == index ? Colors.orange : Colors.grey.shade400,
         borderRadius: BorderRadius.circular(4),
       ),
     );
   }
 }
 
+// Onboarding content widget for each page
 class OnboardingContent extends StatelessWidget {
   final String title, description, image;
 
   const OnboardingContent({
+    Key? key,
     required this.title,
     required this.description,
     required this.image,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(height: 80),
-        Image.asset(image, height: 300),
-        const SizedBox(height: 50),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            description,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          const SizedBox(height: 30),
+          Expanded(flex: 3, child: Image.asset(image, fit: BoxFit.contain)),
+          const SizedBox(height: 30),
+          Text(
+            title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16, color: Colors.black),
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          Expanded(
+            flex: 2,
+            child: Text(
+              description,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black54,
+                height: 1.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 30),
+        ],
+      ),
     );
   }
 }
