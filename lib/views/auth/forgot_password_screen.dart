@@ -26,7 +26,7 @@ class _ForgotResetPasswordScreenState extends State<ForgotResetPasswordScreen> {
   bool isNewPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
 
-  final String baseUrl = "$baseURL:30409/api/password";
+  final String baseUrl = "$baseURL:5001/api/password";
 
   Future<void> sendOtp() async {
     if (emailController.text.isEmpty) {
