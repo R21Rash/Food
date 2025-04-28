@@ -73,7 +73,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   Future<void> deleteProduct() async {
     final id = widget.product['_id'];
-    final uri = Uri.parse("http://192.168.8.163:31201/api/products/$id");
+    final uri = Uri.parse("$baseURL:31201/api/products/$id");
 
     final response = await http.delete(uri);
 

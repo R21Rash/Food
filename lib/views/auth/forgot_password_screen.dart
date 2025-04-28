@@ -26,20 +26,25 @@ class _ForgotResetPasswordScreenState extends State<ForgotResetPasswordScreen> {
   bool isNewPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
 
-  final String baseUrl = "$baseURL:30409/api/password";
+  final String baseUrl = "$baseURL:30409/api/auth";
 
   Future<void> sendOtp() async {
+    print("🟠 sendOtp() called"); // <<< Added this
+
     if (emailController.text.isEmpty) {
+      final errorMessage = "Please enter your email";
+      print("[ERROR] Email validation failed: $errorMessage");
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter your email"),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
       );
       return;
     }
 
     setState(() => isLoading = true);
+    print(
+      "🔵 Sending OTP to email: ${emailController.text.trim()}",
+    ); // <<< Added this
 
     try {
       final response = await http.post(
@@ -49,6 +54,10 @@ class _ForgotResetPasswordScreenState extends State<ForgotResetPasswordScreen> {
       );
 
       final res = json.decode(response.body);
+
+      print("🟢 Response status: ${response.statusCode}");
+      print("🟢 Response body: $res");
+
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -66,11 +75,13 @@ class _ForgotResetPasswordScreenState extends State<ForgotResetPasswordScreen> {
         );
       }
     } catch (e) {
+      print("🔴 Error sending OTP: $e"); // <<< Added this
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
       );
     } finally {
       setState(() => isLoading = false);
+      print("⚪ sendOtp() finished"); // <<< Added this
     }
   }
 

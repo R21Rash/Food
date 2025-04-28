@@ -220,7 +220,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
 
   Future<void> cancelOrder(String orderId) async {
     final response = await http.delete(
-      Uri.parse("http://192.168.8.163:32189/api/orders/cancel/$orderId"),
+      Uri.parse("$baseURL:32189/api/orders/cancel/$orderId"),
     );
 
     if (response.statusCode == 200) {
