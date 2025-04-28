@@ -271,7 +271,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                 ),
       ),
       bottomNavigationBar: BottomNavBarForCustomer(
-        currentIndex: 1,
+        currentIndex: 2,
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/customer_home');

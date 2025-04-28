@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
+
 class EditOrderScreen extends StatefulWidget {
   final Map<String, dynamic> order;
 
@@ -52,9 +54,7 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
     };
 
     final response = await http.put(
-      Uri.parse(
-        "http://192.168.8.163:32189/api/orders/edit/${widget.order['_id']}",
-      ),
+      Uri.parse("$baseURL:32189/api/orders/edit/${widget.order['_id']}"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode(updatedOrder),
     );
