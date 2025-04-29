@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+// Screen for editing an existing order
 class EditOrderScreen extends StatefulWidget {
-  final Map<String, dynamic> order;
+  final Map<String, dynamic> order; // Order data to be edited
 
   const EditOrderScreen({super.key, required this.order});
 
@@ -12,15 +13,18 @@ class EditOrderScreen extends StatefulWidget {
 }
 
 class _EditOrderScreenState extends State<EditOrderScreen> {
-  late TextEditingController _locationController;
-  late List<TextEditingController> _sizeControllers;
+  late TextEditingController _locationController; // Controller for delivery address input
+  late List<TextEditingController> _sizeControllers; // Controllers for item size inputs
 
+  // Initialize controllers with order data
   @override
   void initState() {
     super.initState();
+    // Set initial address from order data
     _locationController = TextEditingController(
       text: widget.order['deliveryLocation']['address'] ?? '',
     );
+    // Create controllers for each item's size
     _sizeControllers = List.generate(
       widget.order['items'].length,
       (index) => TextEditingController(
@@ -29,7 +33,9 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
     );
   }
 
+  // Send updated order data to the server
   Future<void> updateOrder() async {
+    // Prepare updated items with modified sizes
     final updatedItems = List.generate(widget.order['items'].length, (index) {
       final item = widget.order['items'][index];
       return {
@@ -42,6 +48,7 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
       };
     });
 
+    // Construct updated order payload
     final updatedOrder = {
       "items": updatedItems,
       "deliveryLocation": {
@@ -51,6 +58,7 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
       },
     };
 
+    // Make HTTP PUT request to update order
     final response = await http.put(
       Uri.parse(
         "http://192.168.8.163:32189/api/orders/edit/${widget.order['_id']}",
@@ -59,15 +67,18 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
       body: jsonEncode(updatedOrder),
     );
 
+    // Handle response
     if (response.statusCode == 200) {
-      Navigator.pop(context, true); // success
+      Navigator.pop(context, true); // Return success
     } else {
+      // Show error message if update fails
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to update order: ${response.body}")),
       );
     }
   }
 
+  // Build the UI for editing order
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,21 +89,25 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Section header for item sizes
           const Text(
             "Update Sizes",
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
+          // Generate input fields for each item's size
           ...List.generate(widget.order['items'].length, (index) {
             final item = widget.order['items'][index];
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Display item title
                 Text(
                   "Item: ${item['title']}",
                   style: const TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 5),
+                // Input field for item size
                 TextField(
                   controller: _sizeControllers[index],
                   decoration: const InputDecoration(
@@ -105,12 +120,14 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
             );
           }),
 
+          // Section header for delivery address
           const SizedBox(height: 20),
           const Text(
             "Update Address",
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
+          // Input field for delivery address
           TextField(
             controller: _locationController,
             maxLines: 2,
@@ -120,6 +137,7 @@ class _EditOrderScreenState extends State<EditOrderScreen> {
             ),
           ),
 
+          // Save button
           const SizedBox(height: 30),
           ElevatedButton(
             onPressed: updateOrder,
