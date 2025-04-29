@@ -11,8 +11,6 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   String? selectedRole;
-  bool agreeToTerms = false; // NEW: Track checkbox status
-
   final List<String> roles = ["Customer", "Restaurant", "Delivery"];
 
   final TextEditingController fullNameController = TextEditingController();
@@ -128,9 +126,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                             ),
                                           ),
                                           onPressed:
-                                              () => setState(() {
-                                                selectedRole = role;
-                                              }),
+                                              () => setState(
+                                                () => selectedRole = role,
+                                              ),
                                           child: Text(role),
                                         ),
                                       ),
@@ -236,29 +234,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               },
                             ),
 
-                            const SizedBox(height: 10),
-
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: agreeToTerms,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      agreeToTerms = value!;
-                                    });
-                                  },
-                                ),
-                                const Expanded(
-                                  child: Text(
-                                    "I agree to the Terms & Conditions",
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 10),
-
+                            const SizedBox(height: 20),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
@@ -273,21 +249,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                   ),
                                 ),
                                 onPressed: () {
-                                  if (!_formKey.currentState!.validate()) {
-                                    return;
+                                  if (_formKey.currentState!.validate()) {
+                                    registerUser();
                                   }
-                                  if (!agreeToTerms) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "You must agree to the Terms & Conditions.",
-                                        ),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  registerUser();
                                 },
                                 child: const Text(
                                   "SIGN UP",
@@ -341,50 +305,44 @@ class _SignupScreenState extends State<SignupScreen> {
     String? Function(String?)? validator,
   }) {
     bool obscureText = isPassword;
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label.toUpperCase(),
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 5),
+        TextFormField(
+          obscureText: obscureText,
+          controller: controller,
+          keyboardType: keyboardType,
+          validator: validator,
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: Colors.grey[200],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
             ),
-            const SizedBox(height: 5),
-            TextFormField(
-              obscureText: obscureText,
-              controller: controller,
-              keyboardType: keyboardType,
-              validator: validator,
-              decoration: InputDecoration(
-                hintText: hint,
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-                suffixIcon:
-                    isPassword
-                        ? IconButton(
-                          icon: Icon(
-                            obscureText
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              obscureText = !obscureText;
-                            });
-                          },
-                        )
-                        : null,
-              ),
-            ),
-            const SizedBox(height: 15),
-          ],
-        );
-      },
+            suffixIcon:
+                isPassword
+                    ? IconButton(
+                      icon: Icon(
+                        obscureText ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          obscureText = !obscureText;
+                        });
+                      },
+                    )
+                    : null,
+          ),
+        ),
+        const SizedBox(height: 15),
+      ],
     );
   }
 

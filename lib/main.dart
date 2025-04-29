@@ -25,18 +25,14 @@ import 'package:mobile_app_flutter/views/item/restaurant_details_screen.dart';
 import 'package:mobile_app_flutter/views/item/order_list_screen.dart';
 import 'package:mobile_app_flutter/views/item/edit_order_screen.dart';
 
-// Entry point of the application
 void main() async {
-  // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
-  // Retrieve SharedPreferences instance
   SharedPreferences prefs = await SharedPreferences.getInstance();
 
-  // Check onboarding and login status
   final bool seenOnboarding = prefs.getBool('seenOnboarding') ?? false;
-  final bool isLoggedIn = prefs.get  final String? role = prefs.getString("role");
+  final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  final String? role = prefs.getString("role");
 
-  // Determine initial route based on user state
   String initialRoute;
 
   if (!seenOnboarding) {
@@ -60,36 +56,30 @@ void main() async {
     initialRoute = AppRoutes.login;
   }
 
-  // Start the app with the determined initial route
   runApp(MyApp(initialRoute: initialRoute));
 }
 
-// Main application widget
 class MyApp extends StatelessWidget {
-  final String initialRoute; // Initial route to display
-
+  final String initialRoute;
   const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      // Provide LocationProvider to the widget tree
       providers: [ChangeNotifierProvider(create: (_) => LocationProvider())],
       child: MaterialApp(
-        debugShowCheckedModeBanner: false, // Disable debug banner
-        title: 'Food App', // App title
-        theme: ThemeData(primaryColor: Colors.orange, fontFamily: 'Poppins'), // App theme
-        initialRoute: initialRoute, // Set initial route
-        routes: AppRoutes.staticRoutes, // Define static routes
-        onGenerateRoute: AppRoutes.onGenerateRoute, // Handle dynamic routes
+        debugShowCheckedModeBanner: false,
+        title: 'Food App',
+        theme: ThemeData(primaryColor: Colors.orange, fontFamily: 'Poppins'),
+        initialRoute: initialRoute,
+        routes: AppRoutes.staticRoutes,
+        onGenerateRoute: AppRoutes.onGenerateRoute,
       ),
     );
   }
 }
 
-// Route configuration for the app
 class AppRoutes {
-  // Route names as constants
   static const String splash = '/splash';
   static const String onboarding = '/onboarding';
   static const String login = '/login';
@@ -111,31 +101,30 @@ class AppRoutes {
   static const String restaurantDetails = '/restaurant_details';
   static const String testLocation = '/location_widget';
 
-  // Static routes mapping
   static Map<String, WidgetBuilder> get staticRoutes => {
-        splash: (context) => SplashScreen(),
-        onboarding: (context) => OnboardingScreen(),
-        login: (context) => LoginScreen(),
-        signup: (context) => SignupScreen(),
-        forgotPassword: (context) => ForgotResetPasswordScreen(),
-        customerHome: (context) => HomeCustomerScreen(),
-        restaurantHome: (context) => RestaurantHomeScreen(),
-        deliveryHome: (context) => DeliveryHomeScreen(),
-        trackOrder: (context) => TrackOrderScreen(),
-        restaurantAdd: (context) => RestaurantAddScreen(),
-        restaurantList: (context) => RestaurantListScreen(),
-        restaurantNotifications: (context) => NotificationScreen(),
-        deliveryProfile: (context) => DeliveryProfileScreen(),
-        customerProfile: (context) => CustomerProfileScreen(),
-        restaurantProfile: (context) => RestuarantProfileScreen(),
-        customerOrders: (context) => const OrderListScreen(),
-        testLocation: (context) => Scaffold(
-              appBar: AppBar(title: const Text("Test Location Widget")),
-              body: const LocationWidget(),
-            ),
-      };
+    splash: (context) => SplashScreen(),
+    onboarding: (context) => OnboardingScreen(),
+    login: (context) => LoginScreen(),
+    signup: (context) => SignupScreen(),
+    forgotPassword: (context) => ForgotResetPasswordScreen(),
+    customerHome: (context) => HomeCustomerScreen(),
+    restaurantHome: (context) => RestaurantHomeScreen(),
+    deliveryHome: (context) => DeliveryHomeScreen(),
+    trackOrder: (context) => TrackOrderScreen(),
+    restaurantAdd: (context) => RestaurantAddScreen(),
+    restaurantList: (context) => RestaurantListScreen(),
+    restaurantNotifications: (context) => NotificationScreen(),
+    deliveryProfile: (context) => DeliveryProfileScreen(),
+    customerProfile: (context) => CustomerProfileScreen(),
+    restaurantProfile: (context) => RestuarantProfileScreen(),
+    customerOrders: (context) => const OrderListScreen(),
+    testLocation:
+        (context) => Scaffold(
+          appBar: AppBar(title: const Text("Test Location Widget")),
+          body: const LocationWidget(),
+        ),
+  };
 
-  // Generate dynamic routes based on arguments
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     if (settings.name == trackDelivery) {
       final order = settings.arguments as Map<String, dynamic>?;
@@ -150,7 +139,8 @@ class AppRoutes {
       final restaurantName = settings.arguments as String?;
       if (restaurantName != null) {
         return MaterialPageRoute(
-          builder: (_) => RestaurantDetailsScreen(restaurantName: restaurantName),
+          builder:
+              (_) => RestaurantDetailsScreen(restaurantName: restaurantName),
         );
       }
     }
@@ -162,16 +152,12 @@ class AppRoutes {
       }
     }
 
-    return null; // Return null if no matching route is found
+    return null;
   }
 }
 
-// Logout user and clear preferences
 Future<void> logoutUser(BuildContext context) async {
-  // Retrieve SharedPreferences instance
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  // Clear all stored preferences
   await prefs.clear();
-  // Navigate to login screen and remove all previous routes
   Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
 }
