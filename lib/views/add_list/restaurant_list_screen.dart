@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:mobile_app_flutter/views/add_list/EditProductScreen.dart';
 import 'package:mobile_app_flutter/views/components/bottom_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,8 +33,7 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
 
   Future<void> fetchProductsByRestaurant(String name) async {
     final encodedName = Uri.encodeComponent(name);
-    final url =
-        "http://192.168.8.163:31201/api/products/by-restaurant/$encodedName";
+    final url = "$baseURL:31201/api/products/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));
