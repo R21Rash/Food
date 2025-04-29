@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+// Custom cart button widget with item count badge
 class CartButton extends StatelessWidget {
-  final int cartItemCount;
-  final VoidCallback onCartPressed;
+  final int cartItemCount; // Number of items in the cart
+  final VoidCallback onCartPressed; // Callback for cart button press
 
   const CartButton({
     Key? key,
@@ -14,23 +15,25 @@ class CartButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
+        // Cart icon button
         IconButton(
-          icon: const Icon(Icons.shopping_bag_outlined, color: Colors.black),
-          onPressed: onCartPressed,
+          icon: const Icon(Icons.shopping_bag_outlined, color: Colors.black), // Shopping bag icon
+          onPressed: onCartPressed, // Trigger callback on press
         ),
+        // Show item count badge if cart is not empty
         if (cartItemCount > 0)
           Positioned(
-            right: 8,
-            top: 8,
+            right: 8, // Position badge to the right
+            top: 8, // Position badge at the top
             child: Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(4), // Padding inside badge
               decoration: BoxDecoration(
-                color: Colors.orange,
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.orange, // Badge background color
+                borderRadius: BorderRadius.circular(10), // Rounded badge
               ),
               child: Text(
-                cartItemCount.toString(),
-                style: const TextStyle(fontSize: 12, color: Colors.white),
+                cartItemCount.toString(), // Display item count
+                style: const TextStyle(fontSize: 12, color: Colors.white), // Text style for badge
               ),
             ),
           ),
