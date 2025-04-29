@@ -7,12 +7,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile_app_flutter/views/components/CustomBottomNavBarForDriver.dart';
 import 'package:mobile_app_flutter/views/profile/edit_customer_profile_screen.dart';
 
+/// DeliveryProfileScreen displays the delivery driver's profile information and provides
+/// options for profile management such as editing, logging out, and deactivation.
 class DeliveryProfileScreen extends StatefulWidget {
   @override
   State<DeliveryProfileScreen> createState() => _DeliveryProfileScreenState();
 }
 
 class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
+  // Driver information properties with default loading values
   String name = "Loading...";
   String email = "Loading...";
   String phone = "Loading...";
@@ -22,12 +25,16 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
   @override
   void initState() {
     super.initState();
+    // Load driver profile information when screen initializes
     loadProfileDetails();
   }
 
+  /// Retrieves driver profile information from SharedPreferences storage
+  /// and updates the state with the retrieved values
   Future<void> loadProfileDetails() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
+      // Retrieve stored driver data with fallback values if not found
       name = prefs.getString("fullName") ?? "Delivery Partner";
       email = prefs.getString("email") ?? "driver@example.com";
       phone = prefs.getString("phone") ?? "+94 77 123 4567";
@@ -36,17 +43,24 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
     });
   }
 
+  /// Handles bottom navigation bar item selection
+  /// and navigates to the appropriate screen
   void _onNavTapped(int index) {
     if (index == 0) {
+      // Navigate to delivery home screen
       Navigator.pushReplacementNamed(context, '/delivery_home');
     } else if (index == 1) {
+      // Navigate to delivery tracking screen
       Navigator.pushReplacementNamed(context, '/track_delivery');
     } else if (index == 2) {
-      // Already on profile
+      // Already on profile screen - do nothing
     }
   }
 
+  /// Handles account deactivation process
+  /// Displays confirmation dialog, validates user input, and makes API call to deactivate account
   Future<void> _deactivateAccount() async {
+    // Show confirmation dialog with text input validation
     String? confirmation = await showDialog<String>(
       context: context,
       builder: (context) {
@@ -73,6 +87,7 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
             ),
             ElevatedButton(
               onPressed: () {
+                // Validate the input text
                 if (controller.text.trim().toLowerCase() == "deactivate") {
                   Navigator.pop(context, controller.text);
                 } else {
@@ -90,11 +105,14 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
       },
     );
 
+    // If user cancelled, exit the function
     if (confirmation == null) return;
 
+    // Get user email from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString("email");
 
+    // Validate email existence
     if (email == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Email not found. Try logging in again.")),
@@ -102,13 +120,11 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
       return;
     }
 
+    // API endpoint for account deactivation
     final url = Uri.parse("$baseURL:30409/api/auth/deactivate");
 
     try {
-      // Call your deactivation API here
-      // final response = await http.post(...);
-
-      // On success:
+      // Send deactivation request to server
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -116,9 +132,11 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
       );
 
       if (response.statusCode == 200) {
+        // Update local status
         await prefs.setString("status", "inactive");
         setState(() => status = "inactive");
 
+        // Notify user of successful deactivation
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account deactivated successfully")),
         );
@@ -127,19 +145,24 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
         await prefs.clear();
         Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
       } else {
+        // Handle error response from server
         final body = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed: ${body['message'] ?? 'Try again'}")),
         );
       }
     } catch (e) {
+      // Handle network or other exceptions
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 
+  /// Handles user logout functionality
+  /// Shows a confirmation dialog and clears session data on confirmation
   Future<void> _logout() async {
+    // Display confirmation dialog and get user response
     bool? confirmed = await showDialog<bool>(
       context: context,
       builder:
@@ -159,9 +182,11 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
           ),
     );
 
+    // If user confirmed logout
     if (confirmed == true) {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
+      await prefs.clear(); // Clear all shared preferences
+      // Navigate to login screen and remove all previous routes
       Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     }
   }
@@ -185,10 +210,11 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Driver badge on avatar with status
+            // Driver avatar with badge showing driver status
             Stack(
               alignment: Alignment.bottomRight,
               children: [
+                // Driver avatar
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.orange.withOpacity(0.1),
@@ -198,6 +224,7 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
                     color: Colors.orange,
                   ),
                 ),
+                // Status badge overlay
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -230,15 +257,18 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
               ],
             ),
             const SizedBox(height: 16),
+            // Driver name display
             Text(
               name,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
+            // Driver contact information
             Text(email, style: TextStyle(color: Colors.grey[700])),
             const SizedBox(height: 2),
             Text(phone, style: TextStyle(color: Colors.grey[700])),
             const SizedBox(height: 12),
+            // Last delivery information
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -254,6 +284,8 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
             ),
             const SizedBox(height: 20),
             const Divider(),
+            // Profile action options
+            // Edit profile option
             ListTile(
               leading: const Icon(Icons.edit, color: Colors.orange),
               title: const Text("Edit Profile"),
@@ -266,6 +298,7 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
                 );
               },
             ),
+            // About app option
             ListTile(
               leading: const Icon(Icons.info_outline, color: Colors.orange),
               title: const Text("About Food App"),
@@ -279,9 +312,11 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
               },
             ),
             const Spacer(),
+            // Conditional rendering of action buttons based on account status
             if (status == "active")
               Row(
                 children: [
+                  // Deactivate account button
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: _deactivateAccount,
@@ -298,6 +333,7 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
+                  // Logout button
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: _logout,
@@ -315,6 +351,7 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
                   ),
                 ],
               ),
+            // Only show logout button if account is inactive
             if (status != "active")
               ElevatedButton.icon(
                 onPressed: _logout,
@@ -332,8 +369,9 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
           ],
         ),
       ),
+      // Bottom navigation bar for driver app-wide navigation
       bottomNavigationBar: CustomBottomNavBarForTracking(
-        currentIndex: 2, // Profile tab
+        currentIndex: 2, // Profile tab is selected (index 2)
         onTap: _onNavTapped,
       ),
     );

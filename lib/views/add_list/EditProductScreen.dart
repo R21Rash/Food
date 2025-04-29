@@ -56,7 +56,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("✅ Product updated"),
+          content: Text("Product updated"),
           backgroundColor: Colors.green,
         ),
       );
@@ -64,7 +64,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("❌ Failed: ${response.body}"),
+          content: Text("Failed: ${response.body}"),
           backgroundColor: Colors.red,
         ),
       );
@@ -88,7 +88,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("❌ Delete Failed: ${response.body}"),
+          content: Text("Delete Failed: ${response.body}"),
           backgroundColor: Colors.red,
         ),
       );
