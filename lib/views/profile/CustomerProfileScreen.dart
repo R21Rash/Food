@@ -138,7 +138,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 
     // API endpoint for account deactivation
     // final url = Uri.parse("http://192.168.8.163:30409/api/auth/deactivate"); // Development URL
-    final url = Uri.parse("$baseURL:5001/api/auth/deactivate"); // Production URL
+    final url = Uri.parse("$baseURL:30409/api/auth/deactivate"); // Production URL
 
     try {
       // Send deactivation request to server

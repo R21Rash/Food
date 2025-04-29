@@ -48,7 +48,7 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
       return;
     }
 
-    final url = Uri.parse("$baseURL:5001/api/auth/updateProfile");
+    final url = Uri.parse("$baseURL:30409/api/auth/updateProfile");
 
     try {
       final response = await http.put(

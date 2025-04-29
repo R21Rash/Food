@@ -121,7 +121,7 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
     }
 
     // API endpoint for account deactivation
-    final url = Uri.parse("$baseURL:5001/api/auth/deactivate");
+    final url = Uri.parse("$baseURL:30409/api/auth/deactivate");
 
     try {
       // Send deactivation request to server
