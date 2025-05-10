@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:mobile_app_flutter/views/components/cart_button.dart';
 import 'package:mobile_app_flutter/views/components/cart_modal.dart';
 
+/// Screen to display details of a single product item for customers.
 class CustomerItemScreen extends StatefulWidget {
   final Map<String, dynamic> product;
 
@@ -14,18 +16,22 @@ class CustomerItemScreen extends StatefulWidget {
 }
 
 class _CustomerItemScreenState extends State<CustomerItemScreen> {
-  List<Map<String, dynamic>> cartItems = [];
-  List<Map<String, dynamic>> relatedProducts = [];
+  List<Map<String, dynamic>> cartItems = []; // List to hold cart items
+  List<Map<String, dynamic>> relatedProducts =
+      []; // List to hold related products
+
+  String? selectedSize; // Selected size option
 
   @override
   void initState() {
     super.initState();
-    fetchProducts();
+    fetchProducts(); // Fetch related products on screen load
   }
 
-  String? selectedSize;
+  /// Adds the current product to the cart with selected size
   void addToCart() {
     if (selectedSize == null) {
+      // If size not selected, show an error message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please select a size."),
@@ -47,6 +53,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
       });
     });
 
+    // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("${widget.product['name']} added to cart!"),
@@ -56,8 +63,9 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
     );
   }
 
+  /// Fetches all products from the API to show related products
   Future<void> fetchProducts() async {
-    const String apiUrl = "http://192.168.8.163:31201/api/products/all";
+    const String apiUrl = "$baseURL:31201/api/products/all";
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -79,7 +87,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
     final image =
         product['images'] != null && product['images'].isNotEmpty
             ? product['images'][0]
-            : "https://via.placeholder.com/300";
+            : "https://via.placeholder.com/300"; // Default image if none
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -93,6 +101,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
         title: const Text("Details", style: TextStyle(color: Colors.black)),
         centerTitle: true,
         actions: [
+          // Cart button in app bar
           CartButton(
             cartItemCount: cartItems.length,
             onCartPressed:
@@ -105,6 +114,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Product image
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: Image.network(
@@ -115,6 +125,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
               ),
             ),
             const SizedBox(height: 10),
+            // Restaurant and status chips
             Row(
               children: [
                 Chip(
@@ -131,21 +142,24 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
                 const Spacer(),
                 IconButton(
                   icon: Icon(Icons.favorite_border, color: Colors.grey),
-                  onPressed: () {},
+                  onPressed: () {}, // Future favorite functionality
                 ),
               ],
             ),
             const SizedBox(height: 10),
+            // Product name
             Text(
               product['name'],
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 5),
+            // Product description
             Text(
               product['description'] ?? "No description available.",
               style: TextStyle(fontSize: 14, color: Colors.grey[700]),
             ),
             const SizedBox(height: 10),
+            // Product details: rating, delivery type, time, price
             Row(
               children: [
                 Icon(Icons.star, color: Colors.orange, size: 18),
@@ -171,6 +185,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
               ],
             ),
             const SizedBox(height: 20),
+            // Size selection
             const Text(
               "Size",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -186,6 +201,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
                       .toList(),
             ),
             const SizedBox(height: 20),
+            // Ingredients section
             const Text(
               "Ingredients",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -200,6 +216,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
               ],
             ),
             const SizedBox(height: 30),
+            // Add to Cart button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -221,7 +238,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
             ),
             const SizedBox(height: 30),
 
-            ///  section
+            /// Related Products Section
             if (relatedProducts.isNotEmpty) ...[
               const Text(
                 "More Items",
@@ -257,6 +274,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
                       color: Colors.grey,
                     ),
                     onTap: () {
+                      // Navigate to new item details
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -274,6 +292,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
     );
   }
 
+  /// Widget for displaying a selectable size option
   Widget _sizeOption(String size) {
     final isSelected = selectedSize == size;
 
@@ -297,6 +316,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
     );
   }
 
+  /// Widget for displaying an ingredient icon
   Widget _ingredientIcon(IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(right: 10),

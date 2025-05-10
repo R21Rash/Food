@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,12 +9,15 @@ class LoginScreen extends StatefulWidget {
   _LoginScreenState createState() => _LoginScreenState();
 }
 
+// 30409
+
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
+  bool isPasswordVisible = false; // Track password visibility
 
-  final String backendUrl = "http://192.168.8.163:30409/api/auth/login";
+  final String backendUrl = "$baseURL:5001/api/auth/login";
 
   Future<void> loginUser() async {
     print("loginUser() called");
@@ -65,6 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
           "restaurantName",
           data["user"]["restaurantName"] ?? "Restaurant",
         );
+        await prefs.setString("phone", data["user"]["phone"] ?? "");
+        await prefs.setString("status", data["user"]["status"] ?? "");
 
         print("✅ Login success! Redirecting user with role: $role");
 
@@ -128,7 +134,6 @@ class _LoginScreenState extends State<LoginScreen> {
           return Stack(
             children: [
               Container(height: 280, color: const Color(0xFF1E1E2D)),
-
               if (!isKeyboardOpen)
                 const Positioned(
                   top: 100,
@@ -152,7 +157,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-
               Align(
                 alignment: Alignment.bottomCenter,
                 child: AnimatedContainer(
@@ -189,7 +193,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             isPassword: true,
                             controller: passwordController,
                           ),
-                          const SizedBox(height: 20),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/forgot_password',
+                                );
+                              },
+                              child: const Text(
+                                "Forgot Password?",
+                                style: TextStyle(
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
                           isLoading
                               ? const Center(child: CircularProgressIndicator())
                               : SizedBox(
@@ -267,7 +289,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 5),
         TextField(
           controller: controller,
-          obscureText: isPassword,
+          obscureText: isPassword ? !isPasswordVisible : false,
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
@@ -276,10 +298,24 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
             ),
-            suffixIcon: isPassword ? const Icon(Icons.visibility_off) : null,
+            suffixIcon:
+                isPassword
+                    ? IconButton(
+                      icon: Icon(
+                        isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isPasswordVisible = !isPasswordVisible;
+                        });
+                      },
+                    )
+                    : null,
           ),
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: 10),
       ],
     );
   }

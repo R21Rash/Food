@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile_app_flutter/common-const/api_constants.dart';
 import 'package:mobile_app_flutter/views/components/bottom_nav_bar_for_customer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -69,7 +70,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('user_id') ?? '';
     final encodedUserId = Uri.encodeComponent(userId);
-    final url = 'http://192.168.8.163:32189/api/orders/by-user/$encodedUserId';
+    final url = '$baseURL:32189/api/orders/by-user/$encodedUserId';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -270,7 +271,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                 ),
       ),
       bottomNavigationBar: BottomNavBarForCustomer(
-        currentIndex: 1,
+        currentIndex: 2,
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/customer_home');
