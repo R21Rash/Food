@@ -54,7 +54,7 @@ class _RestaurantAddScreenState extends State<RestaurantAddScreen> {
   }
 
   Future<void> _submitForm() async {
-    final uri = Uri.parse("$baseURL:31201/api/products/add");
+    final uri = Uri.parse("$baseURL:5004/api/products/add");
     var request = http.MultipartRequest('POST', uri);
     request.fields['name'] = itemNameController.text;
     request.fields['price'] = priceController.text;

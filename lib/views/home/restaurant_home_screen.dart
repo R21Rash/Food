@@ -25,7 +25,9 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     loadGreeting();
     fetchOrderStats();
     fetchPopularItems();
-    fetchRevenueChartData();
+
+    // ✅ Always call mock data to test the chart
+    fetchDailyQuantityChart();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<LocationProvider>(
@@ -64,7 +66,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('restaurantName') ?? '';
     final encodedName = Uri.encodeComponent(name);
-    final url = "$baseURL:32189/api/orders/by-restaurant/$encodedName";
+    final url = "$baseURL:5003/api/orders/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -107,7 +109,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('restaurantName') ?? '';
     final encodedName = Uri.encodeComponent(name);
-    final url = "$baseURL:32189/api/orders/by-restaurant/$encodedName";
+    final url = "$baseURL:5003/api/orders/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -143,11 +145,41 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     }
   }
 
+  Future<void> fetchDailyQuantityChart() async {
+    // ✅ Mock hourly quantity data
+    Map<int, int> hourlyQtyMap = {
+      0: 2,
+      3: 5,
+      6: 10,
+      9: 7,
+      12: 12,
+      15: 9,
+      18: 15,
+      21: 11,
+    };
+
+    List<FlSpot> dailyQtySpots =
+        hourlyQtyMap.entries
+            .map(
+              (entry) => FlSpot(entry.key.toDouble(), entry.value.toDouble()),
+            )
+            .toList();
+
+    setState(() {
+      revenueSpots = dailyQtySpots;
+      revenueByDay = Map.fromEntries(
+        hourlyQtyMap.entries.map(
+          (e) => MapEntry("${e.key}:00", e.value.toDouble()),
+        ),
+      );
+    });
+  }
+
   Future<void> fetchPopularItems() async {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('restaurantName') ?? '';
     final encodedName = Uri.encodeComponent(name);
-    final url = "$baseURL:31201/api/products/by-restaurant/$encodedName";
+    final url = "$baseURL:5004/api/products/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -307,10 +339,11 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          /// Display Title
           Row(
             children: [
               const Text(
-                "Total Revenue",
+                "Quantity Chart",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const Spacer(),
@@ -321,6 +354,11 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 onChanged: (String? newValue) {
                   setState(() {
                     selectedDuration = newValue;
+                    if (newValue == "Daily") {
+                      fetchDailyQuantityChart();
+                    } else {
+                      fetchRevenueChartData();
+                    }
                   });
                 },
                 items:
@@ -331,70 +369,62 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                       );
                     }).toList(),
               ),
-              const SizedBox(width: 8),
-              const Text("See Details", style: TextStyle(color: Colors.orange)),
             ],
           ),
           const SizedBox(height: 8),
 
-          /// 💰 Display Total Income
+          /// Show total income
           Text(
-            "LKR ${totalIncome.toStringAsFixed(2)}",
+            "Total Income Today: LKR ${totalIncome.toStringAsFixed(2)}",
             style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
               color: Colors.orange,
             ),
           ),
 
           const SizedBox(height: 20),
 
-          /// 📊 Revenue Chart
+          /// Daily Quantity Chart
           revenueSpots.isEmpty
-              ? const Center(child: Text("No revenue data available"))
+              ? const Center(child: Text("No data available for today"))
               : SizedBox(
-                height: 150,
+                height: 200,
                 child: LineChart(
                   LineChartData(
                     borderData: FlBorderData(show: false),
-
                     titlesData: FlTitlesData(
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
+                          interval: 1,
                           getTitlesWidget: (value, _) {
-                            final index = value.toInt();
-                            final keys = revenueByDay.keys.toList()..sort();
-                            if (index < keys.length) {
-                              return Text(keys[index].split("-").last);
+                            if (value % 3 == 0 && value >= 0 && value <= 23) {
+                              return Text(
+                                "${value.toInt()}:00",
+                                style: const TextStyle(fontSize: 10),
+                              );
                             }
                             return const Text("");
                           },
-                          interval: 1,
                         ),
                       ),
-
                       topTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
                       rightTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
                       ),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: true),
+                      ),
                     ),
                     lineBarsData: [
                       LineChartBarData(
                         spots: revenueSpots,
                         isCurved: true,
-                        dotData: FlDotData(
-                          show: true,
-                          getDotPainter:
-                              (spot, percent, bar, index) => FlDotCirclePainter(
-                                radius: 2,
-                                color: Colors.orange,
-                                strokeWidth: 0,
-                              ),
-                        ),
                         color: Colors.orange,
+                        dotData: FlDotData(show: true),
                         belowBarData: BarAreaData(
                           show: true,
                           color: Colors.orange.withOpacity(0.3),

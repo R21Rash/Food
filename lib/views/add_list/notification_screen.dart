@@ -30,7 +30,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final encodedName = Uri.encodeComponent(storedName);
 
     final response = await http.get(
-      Uri.parse('$baseURL:32189/api/orders/by-restaurant/$encodedName'),
+      Uri.parse('$baseURL:5003/api/orders/by-restaurant/$encodedName'),
     );
 
     if (response.statusCode == 200) {
@@ -55,7 +55,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
     final response = await http.put(
-      Uri.parse('$baseURL:32189/api/orders/update/$orderId'),
+      Uri.parse('$baseURL:5003/api/orders/update/$orderId'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"orderStatus": newStatus}),
     );

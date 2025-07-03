@@ -102,7 +102,7 @@ class _DeliveryProfileScreenState extends State<DeliveryProfileScreen> {
       return;
     }
 
-    final url = Uri.parse("$baseURL:30409/api/auth/deactivate");
+    final url = Uri.parse("$baseURL:5001/api/auth/deactivate");
 
     try {
       // Call your deactivation API here

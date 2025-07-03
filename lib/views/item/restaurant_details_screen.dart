@@ -28,7 +28,7 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
 
   Future<void> fetchRestaurantProducts() async {
     final url =
-        "$baseURL:31201/api/products/by-restaurant/${Uri.encodeComponent(widget.restaurantName)}";
+        "$baseURL:5004/api/products/by-restaurant/${Uri.encodeComponent(widget.restaurantName)}";
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {

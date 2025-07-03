@@ -38,7 +38,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   }
 
   Future<void> updateOrderStatus(String newStatus) async {
-    final url = '$baseURL:32189/api/orders/update/$orderId';
+    final url = '$baseURL:5003/api/orders/update/$orderId';
     final response = await http.put(
       Uri.parse(url),
       headers: {"Content-Type": "application/json"},

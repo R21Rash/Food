@@ -33,14 +33,27 @@ class _OrderListScreenState extends State<OrderListScreen> {
   Future<void> fetchOrders() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString("user_id");
-    if (userId == null) return;
+    if (userId == null) {
+      print("❌ No user ID found in SharedPreferences");
+      return;
+    }
+
+    print("📡 Fetching orders for userId: $userId");
 
     final response = await http.get(
-      Uri.parse("$baseURL:32189/api/orders/by-user/$userId"),
+      Uri.parse("$baseURL:5003/api/orders/by-user/$userId"),
     );
 
     if (response.statusCode == 200) {
       final List<dynamic> orders = json.decode(response.body);
+
+      print("✅ Orders fetched: ${orders.length}");
+      for (var order in orders) {
+        print(
+          "📦 Order ID: ${order['orderId']}, Status: '${order['orderStatus']}'",
+        );
+      }
+
       final Map<String, List<dynamic>> temp = {
         "Order Received": [],
         "Preparing": [],
@@ -49,15 +62,24 @@ class _OrderListScreenState extends State<OrderListScreen> {
       };
 
       for (var order in orders) {
-        final status = order['orderStatus'];
+        final status = (order['orderStatus'] ?? "").trim(); // Trim whitespace
         if (temp.containsKey(status)) {
           temp[status]!.add(order);
+        } else {
+          print("⚠️ Unknown status found: '$status'");
         }
       }
 
       setState(() {
         groupedOrders = temp;
       });
+
+      print("📊 Grouped Orders Summary:");
+      temp.forEach((key, value) {
+        print("🔹 $key: ${value.length} orders");
+      });
+    } else {
+      print("❌ Failed to fetch orders: ${response.body}");
     }
   }
 
@@ -220,7 +242,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
 
   Future<void> cancelOrder(String orderId) async {
     final response = await http.delete(
-      Uri.parse("$baseURL:32189/api/orders/cancel/$orderId"),
+      Uri.parse("$baseURL:5003/api/orders/cancel/$orderId"),
     );
 
     if (response.statusCode == 200) {

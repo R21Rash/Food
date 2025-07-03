@@ -58,7 +58,7 @@ class _CustomerItemScreenState extends State<CustomerItemScreen> {
   }
 
   Future<void> fetchProducts() async {
-    const String apiUrl = "$baseURL:31201/api/products/all";
+    const String apiUrl = "$baseURL:5004/api/products/all";
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {

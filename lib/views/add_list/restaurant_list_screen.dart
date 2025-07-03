@@ -33,7 +33,7 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
 
   Future<void> fetchProductsByRestaurant(String name) async {
     final encodedName = Uri.encodeComponent(name);
-    final url = "$baseURL:31201/api/products/by-restaurant/$encodedName";
+    final url = "$baseURL:5004/api/products/by-restaurant/$encodedName";
 
     try {
       final response = await http.get(Uri.parse(url));
