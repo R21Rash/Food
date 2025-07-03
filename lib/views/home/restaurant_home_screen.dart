@@ -26,7 +26,6 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     fetchOrderStats();
     fetchPopularItems();
 
-    // ✅ Always call mock data to test the chart
     fetchDailyQuantityChart();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
